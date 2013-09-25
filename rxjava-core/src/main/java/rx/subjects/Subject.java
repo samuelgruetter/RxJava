@@ -17,6 +17,7 @@ package rx.subjects;
 
 import rx.Observable;
 import rx.Observer;
+import rx.util.functions.OnSubscribeFunc;
 
 public abstract class Subject<T, R> extends Observable<R> implements Observer<T> {
     protected Subject(OnSubscribeFunc<R> onSubscribe) {

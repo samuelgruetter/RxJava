@@ -33,6 +33,7 @@ import rx.subscriptions.Subscriptions;
 import rx.util.functions.Action1;
 import rx.util.functions.Func0;
 import rx.util.functions.Func1;
+import rx.util.functions.OnSubscribeFunc;
 
 /**
  * Subject that retains all events and will replay them to an {@link Observer} that subscribes.

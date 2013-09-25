@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
 import rx.Observable;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.Observer;
 import rx.Subscription;
 import rx.util.functions.Func2;

@@ -16,7 +16,7 @@
 package rx.operators;
 
 import rx.Observable;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.util.Timestamped;
 import rx.util.functions.Func1;
 

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.concurrency.Schedulers;
 import rx.subscriptions.BooleanSubscription;
 import rx.util.functions.Action0;

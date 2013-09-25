@@ -25,6 +25,7 @@ import rx.Subscription;
 import rx.observables.ConnectableObservable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
+import rx.util.functions.OnSubscribeFunc;
 
 public class OperationMulticast {
     public static <T, R> ConnectableObservable<R> multicast(Observable<? extends T> source, final Subject<? super T, ? extends R> subject) {

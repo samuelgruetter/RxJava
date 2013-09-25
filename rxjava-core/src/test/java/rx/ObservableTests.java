@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.observables.ConnectableObservable;
 import rx.subscriptions.BooleanSubscription;
 import rx.subscriptions.Subscriptions;

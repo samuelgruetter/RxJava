@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import rx.Observable;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.Observer;
 import rx.Subscription;
 import rx.concurrency.TestScheduler;

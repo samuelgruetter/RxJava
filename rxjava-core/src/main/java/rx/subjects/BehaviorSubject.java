@@ -28,6 +28,7 @@ import rx.Subscription;
 import rx.operators.SafeObservableSubscription;
 import rx.util.functions.Action1;
 import rx.util.functions.Func0;
+import rx.util.functions.OnSubscribeFunc;
 
 /**
  * Subject that publishes the most recent and all subsequent events to each subscribed {@link Observer}.

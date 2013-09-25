@@ -18,6 +18,7 @@ package rx.observables;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
+import rx.util.functions.OnSubscribeFunc;
 
 /**
  * A ConnectableObservable resembles an ordinary {@link Observable}, except that it does not begin

@@ -25,7 +25,7 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import rx.Observable;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;

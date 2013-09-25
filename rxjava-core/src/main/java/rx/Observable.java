@@ -127,29 +127,29 @@ public class Observable<T> {
     /**
      * Executed when 'subscribe' is invoked.
      */
-    private final OnSubscribeFunc<T> onSubscribe;
+    private final rx.util.functions.OnSubscribeFunc<T> onSubscribe;
 
     /**
      * Function interface for work to be performed when an {@link Observable} is subscribed to via {@link Observable#subscribe(Observer)}
      * 
      * @param <T>
      */
-    public static interface OnSubscribeFunc<T> extends Function {
+    public static interface OnSubscribeFunc<T> extends rx.util.functions.OnSubscribeFunc<T> {
 
         public Subscription onSubscribe(Observer<? super T> t1);
 
     }
-
+    
     /**
      * Observable with Function to execute when subscribed to.
      * <p>
-     * NOTE: Use {@link #create(OnSubscribeFunc)} to create an Observable instead of this constructor unless you
+     * NOTE: Use {@link #create(rx.util.functions.OnSubscribeFunc)} to create an Observable instead of this constructor unless you
      * specifically have a need for inheritance.
      * 
      * @param onSubscribe
-     *            {@link OnSubscribeFunc} to be executed when {@link #subscribe(Observer)} is called.
+     *            {@link rx.util.functions.OnSubscribeFunc} to be executed when {@link #subscribe(Observer)} is called.
      */
-    protected Observable(OnSubscribeFunc<T> onSubscribe) {
+    protected Observable(rx.util.functions.OnSubscribeFunc<T> onSubscribe) {
         this.onSubscribe = onSubscribe;
     }
 
@@ -184,7 +184,7 @@ public class Observable<T> {
      */
     public Subscription subscribe(Observer<? super T> observer) {
         // allow the hook to intercept and/or decorate
-        OnSubscribeFunc<T> onSubscribeFunction = hook.onSubscribeStart(this, onSubscribe);
+        rx.util.functions.OnSubscribeFunc<T> onSubscribeFunction = hook.onSubscribeStart(this, onSubscribe);
         // validate and proceed
         if (observer == null) {
             throw new IllegalArgumentException("observer can not be null");
@@ -462,7 +462,7 @@ public class Observable<T> {
      */
     private static class NeverObservable<T> extends Observable<T> {
         public NeverObservable() {
-            super(new OnSubscribeFunc<T>() {
+            super(new rx.util.functions.OnSubscribeFunc<T>() {
 
                 @Override
                 public Subscription onSubscribe(Observer<? super T> t1) {
@@ -482,7 +482,7 @@ public class Observable<T> {
     private static class ThrowObservable<T> extends Observable<T> {
 
         public ThrowObservable(final Throwable exception) {
-            super(new OnSubscribeFunc<T>() {
+            super(new rx.util.functions.OnSubscribeFunc<T>() {
 
                 /**
                  * Accepts an {@link Observer} and calls its {@link Observer#onError onError} method.
@@ -526,7 +526,7 @@ public class Observable<T> {
      * @return an Observable that, when an {@link Observer} subscribes to it, will execute the given
      *         function
      */
-    public static <T> Observable<T> create(OnSubscribeFunc<T> func) {
+    public static <T> Observable<T> create(rx.util.functions.OnSubscribeFunc<T> func) {
         return new Observable<T>(func);
     }
 

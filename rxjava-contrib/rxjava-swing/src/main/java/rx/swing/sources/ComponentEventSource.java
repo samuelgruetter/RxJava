@@ -23,7 +23,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
 import rx.Observable;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.Observer;
 import rx.Subscription;
 import rx.observables.SwingObservable;

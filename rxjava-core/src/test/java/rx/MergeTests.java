@@ -9,7 +9,7 @@ import org.junit.Test;
 import rx.CovarianceTest.HorrorMovie;
 import rx.CovarianceTest.Media;
 import rx.CovarianceTest.Movie;
-import rx.Observable.OnSubscribeFunc;
+import rx.util.functions.OnSubscribeFunc;
 import rx.subscriptions.Subscriptions;
 
 public class MergeTests {

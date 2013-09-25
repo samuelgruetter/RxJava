@@ -17,6 +17,7 @@ package rx.observables;
 
 import rx.Observable;
 import rx.util.functions.Func1;
+import rx.util.functions.OnSubscribeFunc;
 
 /**
  * An {@link Observable} that has been grouped by a key whose value can be obtained using
