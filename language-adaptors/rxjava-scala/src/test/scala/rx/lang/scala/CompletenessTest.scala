@@ -107,7 +107,7 @@ class CompletenessTest extends JUnitSuite {
       "startWith(" + _ + ")" -> "[unnecessary because we can just use `++` instead]"
   ).toMap ++ List.iterate("Observable[_ <: T]", 9)(s => s + ", Observable[_ <: T]").map(
       // concat 2-9
-      "concat(" + _ + ")" -> "[unnecessary because we can use `++` instead or `Observable(o1, o2, ...).concat`]"
+      "concat(" + _ + ")" -> "[unnecessary because we can use `++` instead or `Observable(Seq(o1, o2, ...)).concat`]"
   ).drop(1).toMap ++ List.iterate("T", 10)(s => s + ", T").map(
       // all 10 overloads of from:
       "from(" + _ + ")" -> "apply(T*)"
@@ -118,10 +118,10 @@ class CompletenessTest extends JUnitSuite {
     ("zip(" + obsArgs + "Func" + i + "[" + funcParams + "_ <: R])", unnecessary)
   }).toMap ++ List.iterate("Observable[_ <: T]", 9)(s => s + ", Observable[_ <: T]").map(
       // merge 3-9:
-      "merge(" + _ + ")" -> "[unnecessary because we can use `Observable(o1, o2, ...).flatten` instead]"
+      "merge(" + _ + ")" -> "[unnecessary because we can use `Observable(Seq(o1, o2, ...)).flatten` instead]"
   ).drop(2).toMap ++ List.iterate("Observable[_ <: T]", 9)(s => s + ", Observable[_ <: T]").map(
       // mergeDelayError 3-9:
-      "mergeDelayError(" + _ + ")" -> "[unnecessary because we can use `Observable(o1, o2, ...).flattenDelayError` instead]"
+      "mergeDelayError(" + _ + ")" -> "[unnecessary because we can use `Observable(Seq(o1, o2, ...)).flattenDelayError` instead]"
   ).drop(2).toMap ++ (3 to 9).map(i => {
     // combineLatest 3-9:
     val obsArgs = (1 to i).map(j => s"Observable[_ <: T$j], ").mkString("")

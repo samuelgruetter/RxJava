@@ -71,7 +71,7 @@ package rx.lang.scala
  */
 // constructor is private because users should use apply in companion
 class Observable[+T] private[scala] (val asJava: rx.Observable[_ <: T])
-  // Uncommenting this line combined with `new Observable(...)` instead of `new Observable[T](...)`
+  // Uncommenting this line combined with `new Observable(Seq(...))` instead of `new Observable[T](...)`
   // makes the compiler crash
   extends AnyVal 
 {
@@ -1890,7 +1890,7 @@ object Observable {
    *
    * <img width="640" src="https://github.com/Netflix/RxJava/wiki/images/rx-operators/from.png">
    * 
-   * Implementation note: the entire array will be immediately emitted each time an [[Observer]] subscribes. 
+   * Implementation note: the entire sequence will be immediately emitted each time an [[Observer]] subscribes. 
    * Since this occurs before the [[Subscription]] is returned,
    * it in not possible to unsubscribe from the sequence before it completes.
    * 
@@ -1901,8 +1901,8 @@ object Observable {
    *            resulting Observable
    * @return an Observable that emits each item in the source Array
    */
-  def apply[T](args: T*): Observable[T] = {     
-    Observable[T](JObservable.from(args.toIterable.asJava))
+  def apply[T](args: Seq[T]): Observable[T] = {     
+    Observable[T](JObservable.from(args.asJava))
   }
 
   /**
@@ -2066,7 +2066,7 @@ private[scala] class UnitTestSuite extends org.scalatest.junit.JUnitSuite {
   @Ignore def testCovariance = {
     println("hey, you shouldn't run this test")
     
-    val o1: Observable[Nothing] = Observable()
+    val o1: Observable[Nothing] = Observable(Seq())
     val o2: Observable[Int] = o1
     val o3: Observable[App] = o1
     val o4: Observable[Any] = o2
@@ -2076,12 +2076,12 @@ private[scala] class UnitTestSuite extends org.scalatest.junit.JUnitSuite {
   // Tests which have to be run:
   
   @Test def testDematerialize() {
-    val o = Observable(1, 2, 3)
+    val o = Observable(Seq(1, 2, 3))
     val mat = o.materialize
     val demat = mat.dematerialize
     
     // correctly rejected:
-    // val wrongDemat = Observable("hello").dematerialize
+    // val wrongDemat = Observable(Seq("hello")).dematerialize
     
     assertEquals(demat.toBlockingObservable.toIterable.toList, List(1, 2, 3))
   }
@@ -2105,8 +2105,8 @@ private[scala] class UnitTestSuite extends org.scalatest.junit.JUnitSuite {
   @Test def testFirstOrElse() {
     def mustNotBeCalled: String = sys.error("this method should not be called")
     def mustBeCalled: String = "this is the default value"
-    assertEquals("hello", Observable("hello").firstOrElse(mustNotBeCalled).toBlockingObservable.single)
-    assertEquals("this is the default value", Observable().firstOrElse(mustBeCalled).toBlockingObservable.single)
+    assertEquals("hello", Observable(Seq("hello")).firstOrElse(mustNotBeCalled).toBlockingObservable.single)
+    assertEquals("this is the default value", Observable(Seq()).firstOrElse(mustBeCalled).toBlockingObservable.single)
   }
   
   @Test def testFirstOrElseWithError() {
@@ -2123,7 +2123,7 @@ private[scala] class UnitTestSuite extends org.scalatest.junit.JUnitSuite {
   /*
   @Test def testHead() {
     val observer = mock(classOf[Observer[Int]])
-    val o = Observable().head
+    val o = Observable(Seq()).head
     val sub = o.subscribe(observer)
 
     verify(observer, never).onNext(any(classOf[Int]))
@@ -2133,8 +2133,8 @@ private[scala] class UnitTestSuite extends org.scalatest.junit.JUnitSuite {
   */
   
   @Test def testTest() = {
-    val a: Observable[Int] = Observable()
-    assertEquals(4, Observable(1, 2, 3, 4).toBlockingObservable.toIterable.last)
+    val a: Observable[Int] = Observable(Seq())
+    assertEquals(4, Observable(Seq(1, 2, 3, 4)).toBlockingObservable.toIterable.last)
     println("This UnitTestSuite.testTest() for rx.lang.scala.Observable")
   }
   

@@ -139,7 +139,7 @@ package object scala {
    * }}} 
    */
   def observable[T](body: => T)(implicit scheduler: Scheduler): Observable[T] = {
-    Observable(1).observeOn(scheduler).map(_ => body)
+    Observable(Seq(1)).observeOn(scheduler).map(_ => body)
   }
 }
 
