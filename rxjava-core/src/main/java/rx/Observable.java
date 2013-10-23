@@ -40,6 +40,7 @@ import rx.operators.OperationConcat;
 import rx.operators.OperationDebounce;
 import rx.operators.OperationDefaultIfEmpty;
 import rx.operators.OperationDefer;
+import rx.operators.OperationDelay;
 import rx.operators.OperationDematerialize;
 import rx.operators.OperationDistinct;
 import rx.operators.OperationDistinctUntilChanged;
@@ -76,6 +77,7 @@ import rx.operators.OperationTakeUntil;
 import rx.operators.OperationTakeWhile;
 import rx.operators.OperationThrottleFirst;
 import rx.operators.OperationTimeout;
+import rx.operators.OperationTimer;
 import rx.operators.OperationTimestamp;
 import rx.operators.OperationToObservableFuture;
 import rx.operators.OperationToObservableIterable;
@@ -1925,6 +1927,29 @@ public class Observable<T> {
      */
     public static Observable<Long> interval(long interval, TimeUnit unit, Scheduler scheduler) {
         return create(OperationInterval.interval(interval, unit, scheduler));
+    }
+    
+    /**
+     * TODO
+     * 
+     * @param delay
+     * @param unit
+     * @return
+     */
+    public static Observable<Long> timer(long interval, TimeUnit unit) {
+        return create(OperationTimer.timer(interval, unit));
+    }
+    
+    /**
+     * TODO
+     *
+     * @param interval
+     * @param unit
+     * @param scheduler
+     * @return
+     */
+    public static Observable<Long> timer(long interval, TimeUnit unit, Scheduler scheduler) {
+        return create(OperationTimer.timer(interval, unit, scheduler));
     }
     
     /**
@@ -4531,6 +4556,14 @@ public class Observable<T> {
      */
     public Observable<T> timeout(long timeout, TimeUnit timeUnit) {
         return create(OperationTimeout.timeout(this, timeout, timeUnit, Schedulers.threadPoolForComputation()));
+    }
+    
+    public Observable<T> delay(long delay, TimeUnit unit) {
+    	return OperationDelay.delay(this, delay, unit, Schedulers.threadPoolForComputation());
+    }
+    
+    public Observable<T> delay(long delay, TimeUnit unit, Scheduler scheduler) {
+    	return OperationDelay.delay(this, delay, unit, scheduler);
     }
 
     /**
