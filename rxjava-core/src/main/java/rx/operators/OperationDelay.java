@@ -27,6 +27,7 @@ import static rx.Observable.interval;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
@@ -35,11 +36,13 @@ import rx.Observable;
 import rx.Observer;
 import rx.Scheduler;
 import rx.concurrency.TestScheduler;
+import rx.observables.ConnectableObservable;
+import rx.subjects.BehaviorSubject;
 import rx.util.functions.Func1;
 
 public final class OperationDelay {
 
-    public static <T> Observable<T> delay(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+    public static <T> Observable<T> delayOrig1(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
         // observable.map(x => Observable.timer(t).map(_ => x).cache()).concat()
     	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
 			public Observable<T> call(final T x) {
@@ -53,8 +56,50 @@ public final class OperationDelay {
     	return Observable.concat(seqs);
     }
     
+    public static <T> Observable<T> delay(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+    	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
+			public Observable<T> call(final T x) {
+				System.out.println("map1");
+				final Long DEFAULT = -1L; // only requirement: different than value emitted by Observable.timer()
+				ConnectableObservable<Long> timer = Observable.timer(delay, unit, scheduler).publish();
+				BehaviorSubject<Long> subject = BehaviorSubject.createWithDefaultValue(DEFAULT);
+				timer.subscribe(subject); // TODO do we need a subscribeOn/observeOn here?
+				timer.connect();
+				return subject.filter(new Func1<Long, Boolean>() {
+					public Boolean call(Long l) {
+						System.out.println("filter " + l);
+						return !l.equals(DEFAULT);
+					}
+				}).map(new Func1<Long, T>() {
+					public T call(Long ignored) {
+						System.out.println("map2" + ignored);
+						return x;
+					}
+				});
+			}
+		});
+    	return Observable.concat(seqs);
+    }
+    
+    public static <T> Observable<T> delayDebug(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+        // observable.map(x => Observable.timer(t).map(_ => x).cache()).concat()
+    	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
+			public Observable<T> call(final T x) {
+				System.out.println("map1");
+				return Observable.timer(delay, unit, scheduler).map(new Func1<Long, T>() {
+					public T call(Long ignored) {
+						System.out.println("map2");
+						return x;
+					}
+				}).cache();
+			}
+		});
+    	return Observable.concat(seqs);
+    }
+    
     // copied from
     // https://github.com/jmhofer/RxJava/blob/e9027293dadf846b64f62e91da7c5c5850ed76f5/rxjava-core/src/main/java/rx/operators/OperationDelay.java
+    // @Ignore
     public static class UnitTest {
         @Mock
         private Observer<Long> observer;
