@@ -33,6 +33,7 @@ object Notification {
   
   class OnNext[+T](val asJava: rx.Notification[_ <: T]) extends Notification[T] {
     def value: T = asJava.getValue
+    override def toString = s"OnNext($value)"
   }
   
   object OnNext {
@@ -44,6 +45,7 @@ object Notification {
   
   class OnError[+T](val asJava: rx.Notification[_ <: T]) extends Notification[T] {
     def error: Throwable = asJava.getThrowable
+    override def toString = s"OnError($error)"
   }
   
   object OnError {
@@ -60,6 +62,7 @@ object Notification {
       case n2: OnCompleted[U] => Some()
       case _ => None
     }
+    override def toString = "OnCompleted()"
   }
 
 }
