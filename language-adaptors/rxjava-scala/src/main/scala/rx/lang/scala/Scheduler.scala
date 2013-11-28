@@ -7,8 +7,7 @@ import ImplicitFunctionConversions.schedulerActionToFunc2
 import rx.util.functions.{Action0, Action1, Func2}
 
 /**
- * Represents an object thatimport rx.lang.scala.ImplicitFunctionConversions
- schedules units of work.
+ * Represents an object that schedules units of work.
  */
 trait Scheduler {
   def asJavaScheduler: rx.Scheduler

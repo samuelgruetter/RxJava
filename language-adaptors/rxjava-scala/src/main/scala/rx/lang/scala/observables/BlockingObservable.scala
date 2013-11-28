@@ -21,7 +21,7 @@ import rx.lang.scala.ImplicitFunctionConversions._
 /**
  * An Observable that provides blocking operators.
  * 
- * You can obtain a BlockingObservable from an Observable using [[rx.lang.scala.Observable.toBlockingObservable]]
+ * You can obtain a BlockingObservable from an Observable using [[rx.lang.scala.Observable.toBlockingObservable]].
  */
 // constructor is private because users should use Observable.toBlockingObservable
 class BlockingObservable[+T] private[scala] (val asJava: rx.observables.BlockingObservable[_ <: T]) 
@@ -29,20 +29,18 @@ class BlockingObservable[+T] private[scala] (val asJava: rx.observables.Blocking
 {
 
   /**
-   * Invoke a method on each item emitted by the {@link Observable}; block until the Observable
+   * Invoke a method on each item emitted by the Observable block until the Observable
    * completes.
    * 
    * NOTE: This will block even if the Observable is asynchronous.
    * 
-   * This is similar to {@link Observable#subscribe(Observer)}, but it blocks. Because it blocks it does
-   * not need the {@link Observer#onCompleted()} or {@link Observer#onError(Throwable)} methods.
+   * This is similar to `Observable.subscribe`, but it blocks. Because it blocks it does
+   * not need the `onCompleted` or `onError` methods.
    * 
    * <img width="640" src="https://github.com/Netflix/RxJava/wiki/images/rx-operators/B.forEach.png">
    *
    * @param f
-   *            the {@link Action1} to invoke for every item emitted by the {@link Observable}
-   * @throws RuntimeException
-   *             if an error occurs
+   *            the function to invoke for every item emitted by the Observable
    */
   def foreach(f: T => Unit): Unit = {
     asJava.forEach(f)
