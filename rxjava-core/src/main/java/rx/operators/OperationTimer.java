@@ -58,6 +58,7 @@ public final class OperationTimer {
                 @Override
                 public void call() {
                     observer.onNext(null);
+                    observer.onCompleted();
                 }
             }, period, unit);
 
