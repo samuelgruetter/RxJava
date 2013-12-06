@@ -15,29 +15,40 @@
  */
 package rx.lang.scala
 
+import java.lang.Exception
 import java.{ lang => jlang }
+
+import scala.language.implicitConversions
+import scala.collection.Seq
+
 import rx.util.functions._
+import rx.lang.scala.JavaConversions._
+
 
 /**
  * These function conversions convert between Scala functions and Rx `Func`s and `Action`s.
  * Most RxScala users won't need them, but they might be useful if one wants to use
  * the `rx.Observable` directly instead of using `rx.lang.scala.Observable` or if one wants
  * to use a Java library taking/returning `Func`s and `Action`s.
+ * This object only contains conversions between functions. For conversions between types,
+ * use [[rx.lang.scala.JavaConversions]].
  */
 object ImplicitFunctionConversions {
-  import language.implicitConversions
+
+//  implicit def schedulerActionToFunc2[T](action: (Scheduler, T) => Subscription): Func2[rx.Scheduler, T, rx.Subscription] with Object {def call(s: rx.Scheduler, t: T): rx.Subscription} =
+//    new Func2[rx.Scheduler, T, rx.Subscription] {
+//      def call(s: rx.Scheduler, t: T): rx.Subscription = {
+//        action(rx.lang.scala.Scheduler(s), t).asJavaSubscription
+//      }
+//    }
 
   implicit def schedulerActionToFunc2[T](action: (Scheduler, T) => Subscription) =
-    new Func2[rx.Scheduler, T, Subscription] {
-      def call(s: rx.Scheduler, t: T): Subscription = {
-        action(s, t)
+    new Func2[rx.Scheduler, T, rx.Subscription] {
+      def call(s: rx.Scheduler, t: T): rx.Subscription = {
+        action(Scheduler(s), t).asJavaSubscription
       }
-    }  
-  
-  implicit def scalaSchedulerToJavaScheduler(s: Scheduler): rx.Scheduler = s.asJava
-  
-  implicit def javaSchedulerToScalaScheduler(s: rx.Scheduler): Scheduler = Scheduler(s)
-  
+    }
+
   implicit def scalaFunction1ToOnSubscribeFunc[T](f: rx.lang.scala.Observer[T] => Subscription) =
     new rx.Observable.OnSubscribeFunc[T] {
       def onSubscribe(obs: rx.Observer[_ >: T]): rx.Subscription = {
@@ -54,6 +65,10 @@ object ImplicitFunctionConversions {
     new Action0 {
       def call(): Unit = f()
     }
+
+  implicit def Action1toScalaFunction1ProducingUnit[A](f: Action1[A]): (A=>Unit) = {
+    a => f(a)
+  }
 
   implicit def scalaFunction1ProducingUnitToAction1[A](f: (A => Unit)): Action1[A] =
     new Action1[A] {

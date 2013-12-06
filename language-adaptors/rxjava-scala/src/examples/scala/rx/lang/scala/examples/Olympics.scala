@@ -1,3 +1,18 @@
+/**
+ * Copyright 2013 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package rx.lang.scala.examples
 
 import rx.lang.scala.Observable
@@ -5,7 +20,7 @@ import scala.concurrent.duration._
 
 object Olympics {
   case class Medal(val year: Int, val games: String, val discipline: String, val medal: String, val athlete: String, val country: String)
-  
+
   def mountainBikeMedals: Observable[Medal] = Observable(
     Observable(
       Medal(1996, "Atlanta 1996", "cross-country men", "Gold", "Bart BRENTJENS", "Netherlands"),
@@ -16,7 +31,7 @@ object Olympics {
       Medal(1996, "Atlanta 1996", "cross-country women", "Bronze", "Susan DEMATTEI", "United States of America")
     ),
     fourYearsEmpty,
-    Observable( 
+    Observable(
       Medal(2000, "Sydney 2000", "cross-country women", "Gold", "Paola PEZZO", "Italy"),
       Medal(2000, "Sydney 2000", "cross-country women", "Silver", "Barbara BLATTER", "Switzerland"),
       Medal(2000, "Sydney 2000", "cross-country women", "Bronze", "Marga FULLANA", "Spain"),
@@ -25,7 +40,7 @@ object Olympics {
       Medal(2000, "Sydney 2000", "cross-country men", "Bronze", "Christoph SAUSER", "Switzerland")
     ),
     fourYearsEmpty,
-    Observable( 
+    Observable(
       Medal(2004, "Athens 2004", "cross-country men", "Gold", "Julien ABSALON", "France"),
       Medal(2004, "Athens 2004", "cross-country men", "Silver", "Jose Antonio HERMIDA RAMOS", "Spain"),
       Medal(2004, "Athens 2004", "cross-country men", "Bronze", "Bart BRENTJENS", "Netherlands"),
@@ -34,7 +49,7 @@ object Olympics {
       Medal(2004, "Athens 2004", "cross-country women", "Bronze", "Sabine SPITZ", "Germany")
     ),
     fourYearsEmpty,
-    Observable( 
+    Observable(
       Medal(2008, "Beijing 2008", "cross-country women", "Gold", "Sabine SPITZ", "Germany"),
       Medal(2008, "Beijing 2008", "cross-country women", "Silver", "Maja WLOSZCZOWSKA", "Poland"),
       Medal(2008, "Beijing 2008", "cross-country women", "Bronze", "Irina KALENTYEVA", "Russian Federation"),
@@ -52,12 +67,12 @@ object Olympics {
       Medal(2012, "London 2012", "cross-country women", "Bronze", "Georgia GOULD", "United States of America")
     )
   ).concat
-    
+
   // speed it up :D
   val fourYears = 4000.millis
-  
+
   val neverUsedDummyMedal = Medal(3333, "?", "?", "?", "?", "?")
-  
+
   def fourYearsEmpty: Observable[Medal] = {
     // TODO this should return an observable which emits nothing during fourYears and then completes
     // Because of https://github.com/Netflix/RxJava/issues/388, we get non-terminating tests
@@ -67,5 +82,5 @@ object Olympics {
     // But we just return empty, which completes immediately
     Observable()
   }
-  
+
 }

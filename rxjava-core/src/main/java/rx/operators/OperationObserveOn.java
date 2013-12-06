@@ -15,26 +15,21 @@
  */
 package rx.operators;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
+import rx.Notification;
 import rx.Observable;
 import rx.Observable.OnSubscribeFunc;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscription;
+import rx.concurrency.CurrentThreadScheduler;
 import rx.concurrency.ImmediateScheduler;
-import rx.concurrency.Schedulers;
 import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
+import rx.util.functions.Action0;
+import rx.util.functions.Action1;
 import rx.util.functions.Func2;
 
 /**
@@ -51,6 +46,10 @@ public class OperationObserveOn {
     private static class ObserveOn<T> implements OnSubscribeFunc<T> {
         private final Observable<? extends T> source;
         private final Scheduler scheduler;
+        private volatile Scheduler recursiveScheduler;
+
+        final ConcurrentLinkedQueue<Notification<? extends T>> queue = new ConcurrentLinkedQueue<Notification<? extends T>>();
+        final AtomicInteger counter = new AtomicInteger(0);
 
         public ObserveOn(Observable<? extends T> source, Scheduler scheduler) {
             this.source = source;
@@ -62,65 +61,75 @@ public class OperationObserveOn {
             if (scheduler instanceof ImmediateScheduler) {
                 // do nothing if we request ImmediateScheduler so we don't invoke overhead
                 return source.subscribe(observer);
+            } else if (scheduler instanceof CurrentThreadScheduler) {
+                // do nothing if we request CurrentThreadScheduler so we don't invoke overhead
+                return source.subscribe(observer);
             } else {
-                CompositeSubscription s = new CompositeSubscription();
-                s.add(source.subscribe(new ScheduledObserver<T>(s, observer, scheduler)));
-                return s;
+                return observeOn(observer, scheduler);
             }
         }
-    }
 
-    public static class UnitTest {
+        public Subscription observeOn(final Observer<? super T> observer, final Scheduler scheduler) {
+            final CompositeSubscription s = new CompositeSubscription();
 
-        /**
-         * This is testing a no-op path since it uses Schedulers.immediate() which will not do scheduling.
-         */
-        @Test
-        @SuppressWarnings("unchecked")
-        public void testObserveOn() {
-            Observer<Integer> observer = mock(Observer.class);
-            Observable.create(observeOn(Observable.from(1, 2, 3), Schedulers.immediate())).subscribe(observer);
-
-            verify(observer, times(1)).onNext(1);
-            verify(observer, times(1)).onNext(2);
-            verify(observer, times(1)).onNext(3);
-            verify(observer, times(1)).onCompleted();
-        }
-
-        @Test
-        @SuppressWarnings("unchecked")
-        public void testOrdering() throws InterruptedException {
-            Observable<String> obs = Observable.from("one", null, "two", "three", "four");
-
-            Observer<String> observer = mock(Observer.class);
-
-            InOrder inOrder = inOrder(observer);
-
-            final CountDownLatch completedLatch = new CountDownLatch(1);
-            doAnswer(new Answer<Void>() {
+            s.add(source.materialize().subscribe(new Action1<Notification<? extends T>>() {
 
                 @Override
-                public Void answer(InvocationOnMock invocation) throws Throwable {
-                    completedLatch.countDown();
-                    return null;
+                public void call(Notification<? extends T> e) {
+                    // this must happen before 'counter' is used to provide synchronization between threads
+                    queue.offer(e);
+
+                    // we now use counter to atomically determine if we need to start processing or not
+                    // it will be 0 if it's the first notification or the scheduler has finished processing work
+                    // and we need to start doing it again
+                    if (counter.getAndIncrement() == 0) {
+                        if (recursiveScheduler == null) {
+                            s.add(scheduler.schedule(null, new Func2<Scheduler, T, Subscription>() {
+
+                                @Override
+                                public Subscription call(Scheduler innerScheduler, T state) {
+                                    // record innerScheduler so 'processQueue' can use it for all subsequent executions
+                                    recursiveScheduler = innerScheduler;
+
+                                    processQueue(s, observer);
+
+                                    return Subscriptions.empty();
+                                }
+                            }));
+                        } else {
+                            processQueue(s, observer);
+                        }
+                    }
+
                 }
-            }).when(observer).onCompleted();
+            }));
 
-            obs.observeOn(Schedulers.threadPoolForComputation()).subscribe(observer);
-
-            if (!completedLatch.await(1000, TimeUnit.MILLISECONDS)) {
-                fail("timed out waiting");
-            }
-
-            inOrder.verify(observer, times(1)).onNext("one");
-            inOrder.verify(observer, times(1)).onNext(null);
-            inOrder.verify(observer, times(1)).onNext("two");
-            inOrder.verify(observer, times(1)).onNext("three");
-            inOrder.verify(observer, times(1)).onNext("four");
-            inOrder.verify(observer, times(1)).onCompleted();
-            inOrder.verifyNoMoreInteractions();
+            return s;
         }
 
+        /**
+         * This uses 'recursiveScheduler' NOT 'scheduler' as it should reuse the same scheduler each time it processes.
+         * This means it must first get the recursiveScheduler when it first executes.
+         */
+        private void processQueue(final CompositeSubscription s, final Observer<? super T> observer) {
+
+            s.add(recursiveScheduler.schedule(new Action1<Action0>() {
+                @Override
+                public void call(Action0 self) {
+                    Notification<? extends T> not = queue.poll();
+                    if (not != null) {
+                        not.accept(observer);
+                    }
+
+                    // decrement count and if we still have work to do
+                    // recursively schedule ourselves to process again
+                    if (counter.decrementAndGet() > 0) {
+                        self.call();
+                    }
+
+                }
+            }));
+        }
     }
 
 }

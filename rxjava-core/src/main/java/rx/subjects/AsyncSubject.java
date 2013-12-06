@@ -1,12 +1,12 @@
 /**
  * Copyright 2013 Netflix, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,20 +15,9 @@
  */
 package rx.subjects;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Test;
-import org.mockito.Mockito;
-
+import rx.Notification;
 import rx.Observer;
-import rx.Subscription;
-import rx.operators.SafeObservableSubscription;
-import rx.util.functions.Action1;
-import rx.util.functions.Func0;
+import rx.util.functions.Action2;
 
 /**
  * Subject that publishes only the last event to each {@link Observer} that has subscribed when the
@@ -40,7 +29,7 @@ import rx.util.functions.Func0;
  * <p>
  * <pre> {@code
 
-  // observer will receive no onNext events because the subject.onCompleted() isn't called.
+ * / observer will receive no onNext events because the subject.onCompleted() isn't called.
   AsyncSubject<Object> subject = AsyncSubject.create();
   subject.subscribe(observer);
   subject.onNext("one");
@@ -56,202 +45,71 @@ import rx.util.functions.Func0;
   subject.onCompleted();
 
   } </pre>
- *
+ * 
  * @param <T>
  */
-public class AsyncSubject<T> extends Subject<T, T> {
-
+public class AsyncSubject<T> extends AbstractSubject<T> {
 
     /**
      * Create a new AsyncSubject
-     *
+     * 
      * @return a new AsyncSubject
      */
     public static <T> AsyncSubject<T> create() {
-        final ConcurrentHashMap<Subscription, Observer<? super T>> observers = new ConcurrentHashMap<Subscription, Observer<? super T>>();
+        final SubjectState<T> state = new SubjectState<T>();
+        OnSubscribeFunc<T> onSubscribe = getOnSubscribeFunc(state, new Action2<SubjectState<T>, Observer<? super T>>() {
 
-        OnSubscribeFunc<T> onSubscribe = new OnSubscribeFunc<T>() {
             @Override
-            public Subscription onSubscribe(Observer<? super T> observer) {
-                final SafeObservableSubscription subscription = new SafeObservableSubscription();
-
-                subscription.wrap(new Subscription() {
-                    @Override
-                    public void unsubscribe() {
-                        // on unsubscribe remove it from the map of outbound observers to notify
-                        observers.remove(subscription);
+            public void call(SubjectState<T> state, Observer<? super T> o) {
+                // we want the last value + completed so add this extra logic 
+                // to send onCompleted if the last value is an onNext
+                if (state.completed.get()) {
+                    Notification<T> value = state.currentValue.get();
+                    if (value != null && value.isOnNext()) {
+                        o.onCompleted();
                     }
-                });
-
-                // on subscribe add it to the map of outbound observers to notify
-                observers.put(subscription, observer);
-                return subscription;
+                }
             }
-        };
-
-        return new AsyncSubject<T>(onSubscribe, observers);
+        });
+        return new AsyncSubject<T>(onSubscribe, state);
     }
 
-    private final ConcurrentHashMap<Subscription, Observer<? super T>> observers;
-    private final AtomicReference<T> currentValue;
+    private final SubjectState<T> state;
 
-    protected AsyncSubject(OnSubscribeFunc<T> onSubscribe, ConcurrentHashMap<Subscription, Observer<? super T>> observers) {
+    protected AsyncSubject(OnSubscribeFunc<T> onSubscribe, SubjectState<T> state) {
         super(onSubscribe);
-        this.observers = observers;
-        this.currentValue = new AtomicReference<T>();
+        this.state = state;
     }
 
     @Override
     public void onCompleted() {
-        T finalValue = currentValue.get();
-        for (Observer<? super T> observer : observers.values()) {
-            observer.onNext(finalValue);
-        }
-        for (Observer<? super T> observer : observers.values()) {
-            observer.onCompleted();
-        }
+        /**
+         * Mark this subject as completed and emit latest value + 'onCompleted' to all Observers
+         */
+        emitNotificationAndTerminate(state, new Action2<SubjectState<T>, Observer<? super T>>() {
+
+            @Override
+            public void call(SubjectState<T> state, Observer<? super T> o) {
+                o.onCompleted();
+            }
+        });
     }
 
     @Override
     public void onError(Throwable e) {
-        for (Observer<? super T> observer : observers.values()) {
-            observer.onError(e);
-        }
+        /**
+         * Mark this subject as completed with an error as the last value and emit 'onError' to all Observers
+         */
+        state.currentValue.set(new Notification<T>(e));
+        emitNotificationAndTerminate(state, null);
     }
 
     @Override
-    public void onNext(T args) {
-        currentValue.set(args);
+    public void onNext(T v) {
+        /**
+         * Store the latest value but do not send it. It only gets sent when 'onCompleted' occurs.
+         */
+        state.currentValue.set(new Notification<T>(v));
     }
 
-    public static class UnitTest {
-
-        private final Throwable testException = new Throwable();
-
-        @Test
-        public void testNeverCompleted() {
-        	AsyncSubject<String> subject = AsyncSubject.create();
-
-            @SuppressWarnings("unchecked")
-            Observer<String> aObserver = mock(Observer.class);
-            subject.subscribe(aObserver);
-
-            subject.onNext("one");
-            subject.onNext("two");
-            subject.onNext("three");
-
-            assertNeverCompletedObserver(aObserver);
-        }
-
-        private void assertNeverCompletedObserver(Observer<String> aObserver)
-        {
-            verify(aObserver, Mockito.never()).onNext(anyString());
-            verify(aObserver, Mockito.never()).onError(testException);
-            verify(aObserver, Mockito.never()).onCompleted();
-        }
-
-        @Test
-        public void testCompleted() {
-        	AsyncSubject<String> subject = AsyncSubject.create();
-
-            @SuppressWarnings("unchecked")
-            Observer<String> aObserver = mock(Observer.class);
-            subject.subscribe(aObserver);
-
-            subject.onNext("one");
-            subject.onNext("two");
-            subject.onNext("three");
-            subject.onCompleted();
-
-            assertCompletedObserver(aObserver);
-        }
-
-        private void assertCompletedObserver(Observer<String> aObserver)
-        {
-            verify(aObserver, times(1)).onNext("three");
-            verify(aObserver, Mockito.never()).onError(any(Throwable.class));
-            verify(aObserver, times(1)).onCompleted();
-        }
-
-        @Test
-        public void testError() {
-        	AsyncSubject<String> subject = AsyncSubject.create();
-
-            @SuppressWarnings("unchecked")
-            Observer<String> aObserver = mock(Observer.class);
-            subject.subscribe(aObserver);
-
-            subject.onNext("one");
-            subject.onNext("two");
-            subject.onNext("three");
-            subject.onError(testException);
-            subject.onNext("four");
-            subject.onError(new Throwable());
-            subject.onCompleted();
-
-            assertErrorObserver(aObserver);
-        }
-
-        private void assertErrorObserver(Observer<String> aObserver)
-        {
-            verify(aObserver, Mockito.never()).onNext(anyString());
-            verify(aObserver, times(1)).onError(testException);
-            verify(aObserver, Mockito.never()).onCompleted();
-        }
-
-        @Test
-        public void testUnsubscribeBeforeCompleted() {
-        	AsyncSubject<String> subject = AsyncSubject.create();
-
-            @SuppressWarnings("unchecked")
-            Observer<String> aObserver = mock(Observer.class);
-            Subscription subscription = subject.subscribe(aObserver);
-
-            subject.onNext("one");
-            subject.onNext("two");
-
-            subscription.unsubscribe();
-            assertNoOnNextEventsReceived(aObserver);
-
-            subject.onNext("three");
-            subject.onCompleted();
-
-            assertNoOnNextEventsReceived(aObserver);
-        }
-
-        private void assertNoOnNextEventsReceived(Observer<String> aObserver)
-        {
-            verify(aObserver, Mockito.never()).onNext(anyString());
-            verify(aObserver, Mockito.never()).onError(any(Throwable.class));
-            verify(aObserver, Mockito.never()).onCompleted();
-        }
-
-        @Test
-        public void testUnsubscribe()
-        {
-            UnsubscribeTester.test(new Func0<AsyncSubject<Object>>()
-            {
-                @Override
-                public AsyncSubject<Object> call()
-                {
-                    return AsyncSubject.create();
-                }
-            }, new Action1<AsyncSubject<Object>>()
-            {
-                @Override
-                public void call(AsyncSubject<Object> DefaultSubject)
-                {
-                    DefaultSubject.onCompleted();
-                }
-            }, new Action1<AsyncSubject<Object>>()
-            {
-                @Override
-                public void call(AsyncSubject<Object> DefaultSubject)
-                {
-                    DefaultSubject.onError(new Throwable());
-                }
-            },
-            null);
-        }
-    }
 }

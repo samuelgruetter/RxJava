@@ -20,6 +20,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -29,13 +30,16 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import rx.Observable.OnSubscribeFunc;
+import rx.concurrency.TestScheduler;
 import rx.observables.ConnectableObservable;
 import rx.subscriptions.BooleanSubscription;
 import rx.subscriptions.Subscriptions;
+import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 import rx.util.functions.Func1;
 import rx.util.functions.Func2;
@@ -210,6 +214,51 @@ public class ObservableTests {
         verify(w).onNext(10);
     }
 
+    
+    /**
+     * A reduce should fail with an IllegalArgumentException if done on an empty Observable.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testReduceWithEmptyObservable() {
+        Observable<Integer> observable = Observable.range(1, 0);
+        observable.reduce(new Func2<Integer, Integer, Integer>() {
+
+            @Override
+            public Integer call(Integer t1, Integer t2) {
+                return t1 + t2;
+            }
+
+        }).toBlockingObservable().forEach(new Action1<Integer>() {
+
+            @Override
+            public void call(Integer t1) {
+                // do nothing ... we expect an exception instead
+            }
+        });
+
+        fail("Expected an exception to be thrown");
+    }
+    
+    /**
+     * A reduce on an empty Observable and a seed should just pass the seed through.
+     * 
+     * This is confirmed at https://github.com/Netflix/RxJava/issues/423#issuecomment-27642456
+     */
+    @Test
+    public void testReduceWithEmptyObservableAndSeed() {
+        Observable<Integer> observable = Observable.range(1, 0);
+        int value = observable.reduce(1, new Func2<Integer, Integer, Integer>() {
+
+            @Override
+            public Integer call(Integer t1, Integer t2) {
+                return t1 + t2;
+            }
+
+        }).toBlockingObservable().last();
+
+        assertEquals(1, value);
+    }
+    
     @Test
     public void testReduceWithInitialValue() {
         Observable<Integer> observable = Observable.from(1, 2, 3, 4);
@@ -522,7 +571,8 @@ public class ObservableTests {
         // subscribe twice
         connectable.subscribe(new Action1<String>() {
             @Override
-            public void call(String _) {}
+            public void call(String _) {
+            }
         });
 
         Subscription subscription = connectable.connect();
@@ -745,7 +795,7 @@ public class ObservableTests {
             fail("It should be a NumberFormatException");
         }
     }
-    
+
     @Test
     public void testOfType() {
         Observable<String> observable = Observable.from(1, "abc", false, 2L).ofType(String.class);
@@ -770,7 +820,7 @@ public class ObservableTests {
         l2.add(2);
 
         @SuppressWarnings("rawtypes")
-        Observable<List> observable = Observable.<Object>from(l1, l2, "123").ofType(List.class);
+        Observable<List> observable = Observable.<Object> from(l1, l2, "123").ofType(List.class);
 
         @SuppressWarnings("unchecked")
         Observer<Object> aObserver = mock(Observer.class);
@@ -827,7 +877,7 @@ public class ObservableTests {
 
     @Test
     public void testContainsWithEmptyObservable() {
-        Observable<Boolean> observable = Observable.<String>empty().contains("a");
+        Observable<Boolean> observable = Observable.<String> empty().contains("a");
 
         @SuppressWarnings("unchecked")
         Observer<Object> aObserver = mock(Observer.class);
@@ -839,6 +889,7 @@ public class ObservableTests {
         verify(aObserver, times(1)).onCompleted();
     }
 
+    @Test
     public void testIgnoreElements() {
         Observable<Integer> observable = Observable.from(1, 2, 3).ignoreElements();
 
@@ -848,5 +899,63 @@ public class ObservableTests {
         verify(aObserver, never()).onNext(any(Integer.class));
         verify(aObserver, never()).onError(any(Throwable.class));
         verify(aObserver, times(1)).onCompleted();
+    }
+
+    @Test
+    public void testFromWithScheduler() {
+        TestScheduler scheduler = new TestScheduler();
+        Observable<Integer> observable = Observable.from(Arrays.asList(1, 2), scheduler);
+
+        @SuppressWarnings("unchecked")
+        Observer<Integer> aObserver = mock(Observer.class);
+        observable.subscribe(aObserver);
+
+        scheduler.advanceTimeBy(1, TimeUnit.MILLISECONDS);
+
+        InOrder inOrder = inOrder(aObserver);
+        inOrder.verify(aObserver, times(1)).onNext(1);
+        inOrder.verify(aObserver, times(1)).onNext(2);
+        inOrder.verify(aObserver, times(1)).onCompleted();
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testStartWithWithScheduler() {
+        TestScheduler scheduler = new TestScheduler();
+        Observable<Integer> observable = Observable.from(3, 4).startWith(Arrays.asList(1, 2), scheduler);
+
+        @SuppressWarnings("unchecked")
+        Observer<Integer> aObserver = mock(Observer.class);
+        observable.subscribe(aObserver);
+
+        scheduler.advanceTimeBy(1, TimeUnit.MILLISECONDS);
+
+        InOrder inOrder = inOrder(aObserver);
+        inOrder.verify(aObserver, times(1)).onNext(1);
+        inOrder.verify(aObserver, times(1)).onNext(2);
+        inOrder.verify(aObserver, times(1)).onNext(3);
+        inOrder.verify(aObserver, times(1)).onNext(4);
+        inOrder.verify(aObserver, times(1)).onCompleted();
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testRangeWithScheduler() {
+        TestScheduler scheduler = new TestScheduler();
+        Observable<Integer> observable = Observable.range(3, 4, scheduler);
+
+        @SuppressWarnings("unchecked")
+        Observer<Integer> aObserver = mock(Observer.class);
+        observable.subscribe(aObserver);
+
+        scheduler.advanceTimeBy(1, TimeUnit.MILLISECONDS);
+
+        InOrder inOrder = inOrder(aObserver);
+        inOrder.verify(aObserver, times(1)).onNext(3);
+        inOrder.verify(aObserver, times(1)).onNext(4);
+        inOrder.verify(aObserver, times(1)).onNext(5);
+        inOrder.verify(aObserver, times(1)).onNext(6);
+        inOrder.verify(aObserver, times(1)).onCompleted();
+        inOrder.verifyNoMoreInteractions();
     }
 }

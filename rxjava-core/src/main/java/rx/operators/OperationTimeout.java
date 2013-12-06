@@ -1,12 +1,12 @@
 /**
  * Copyright 2013 Netflix, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,23 +15,45 @@
  */
 package rx.operators;
 
-import rx.Observable;
-import rx.Observer;
-import rx.Scheduler;
-import rx.Subscription;
-import rx.subscriptions.CompositeSubscription;
-import rx.subscriptions.SerialSubscription;
-import rx.util.functions.Action0;
-import rx.util.functions.Func0;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import rx.Observable;
+import rx.Observable.OnSubscribeFunc;
+import rx.Observer;
+import rx.Scheduler;
+import rx.Subscription;
+import rx.concurrency.Schedulers;
+import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.SerialSubscription;
+import rx.util.functions.Action0;
+import rx.util.functions.Func0;
+
+/**
+ * Applies a timeout policy for each element in the observable sequence, using
+ * the specified scheduler to run timeout timers. If the next element isn't
+ * received within the specified timeout duration starting from its predecessor,
+ * the other observable sequence is used to produce future messages from that
+ * point on.
+ */
 public final class OperationTimeout {
-    public static <T> Observable.OnSubscribeFunc<T> timeout(Observable<? extends T> source, long timeout, TimeUnit timeUnit, Scheduler scheduler) {
-        return new Timeout<T>(source, timeout, timeUnit, scheduler);
+
+    public static <T> OnSubscribeFunc<T> timeout(Observable<? extends T> source, long timeout, TimeUnit timeUnit) {
+        return new Timeout<T>(source, timeout, timeUnit, null, Schedulers.threadPoolForComputation());
+    }
+
+    public static <T> OnSubscribeFunc<T> timeout(Observable<? extends T> sequence, long timeout, TimeUnit timeUnit, Observable<? extends T> other) {
+        return new Timeout<T>(sequence, timeout, timeUnit, other, Schedulers.threadPoolForComputation());
+    }
+
+    public static <T> OnSubscribeFunc<T> timeout(Observable<? extends T> source, long timeout, TimeUnit timeUnit, Scheduler scheduler) {
+        return new Timeout<T>(source, timeout, timeUnit, null, scheduler);
+    }
+
+    public static <T> OnSubscribeFunc<T> timeout(Observable<? extends T> sequence, long timeout, TimeUnit timeUnit, Observable<? extends T> other, Scheduler scheduler) {
+        return new Timeout<T>(sequence, timeout, timeUnit, other, scheduler);
     }
 
     private static class Timeout<T> implements Observable.OnSubscribeFunc<T> {
@@ -39,11 +61,13 @@ public final class OperationTimeout {
         private final long timeout;
         private final TimeUnit timeUnit;
         private final Scheduler scheduler;
+        private final Observable<? extends T> other;
 
-        private Timeout(Observable<? extends T> source, long timeout, TimeUnit timeUnit, Scheduler scheduler) {
+        private Timeout(Observable<? extends T> source, long timeout, TimeUnit timeUnit, Observable<? extends T> other, Scheduler scheduler) {
             this.source = source;
             this.timeout = timeout;
             this.timeUnit = timeUnit;
+            this.other = other;
             this.scheduler = scheduler;
         }
 
@@ -68,7 +92,12 @@ public final class OperationTimeout {
                                 }
                             }
                             if (timeoutWins) {
-                                observer.onError(new TimeoutException());
+                                if (other == null) {
+                                    observer.onError(new TimeoutException());
+                                }
+                                else {
+                                    serial.setSubscription(other.subscribe(observer));
+                                }
                             }
 
                         }

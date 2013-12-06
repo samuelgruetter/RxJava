@@ -1,5 +1,60 @@
 # RxJava Releases #
 
+### Version 0.15.1 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.15.1%22)) ###
+
+This release should be additive functionality and bug fixes.
+
+* [Pull 510](https://github.com/Netflix/RxJava/pull/506) Operators: And, Then, When
+* [Pull 514](https://github.com/Netflix/RxJava/pull/514) Operator: Join
+* [Pull 525](https://github.com/Netflix/RxJava/pull/526) Operators: toMap/toMultiMap
+* [Pull 510](https://github.com/Netflix/RxJava/pull/510) BugFix: Zip
+* [Pull 512](https://github.com/Netflix/RxJava/pull/512) Scala Adaptor Details
+* [Pull 512](https://github.com/Netflix/RxJava/pull/529) Scala fixes
+* [Pull 508](https://github.com/Netflix/RxJava/pull/508) Empty subscribe 
+* [Pull 522](https://github.com/Netflix/RxJava/pull/522) Unsubscribe from takeLast
+* [Pull 525](https://github.com/Netflix/RxJava/pull/525) BugFix: Handling of Terminal State for Behavior/Publish Subjects
+
+### Version 0.15.0 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.15.0%22)) ###
+
+This release contains a refactor of the Scala Bindings by @headinthebox that results in some breaking changes. 
+The previous solution ended up not working well in all cases for idiomatic Scala usage. Java/Scala interop has been changed and is no longer transparent so as to optimize for native Scala usage.
+Read the [rxjava-scala README](https://github.com/Netflix/RxJava/tree/master/language-adaptors/rxjava-scala) for more information.
+
+* [Pull 503](https://github.com/Netflix/RxJava/pull/503) New Scala Bindings
+* [Pull 502](https://github.com/Netflix/RxJava/pull/502) Fix ObserveOn and add ParallelMerge Scheduler overload
+* [Pull 499](https://github.com/Netflix/RxJava/pull/499) ObserveOn Refactor
+* [Pull 492](https://github.com/Netflix/RxJava/pull/492) Implement the scheduler overloads for Range, From, StartWith
+* [Pull 496](https://github.com/Netflix/RxJava/pull/496) Add contravariant for min and max
+
+### Version 0.14.11 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.14.11%22)) ###
+
+* [Pull 486](https://github.com/Netflix/RxJava/pull/486) BugFix: AsyncSubject
+* [Pull 483](https://github.com/Netflix/RxJava/pull/483) Tweaks to DoOnEach and added DoOnError/DoOnCompleted
+
+This has a very slight breaking change by removing one `doOnEach` overload. The version was not bumped from 0.14 to 0.15 as it is so minor and the offending method was just released in the previous version.
+
+### Version 0.14.10 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.14.10%22)) ###
+
+* [Pull 481](https://github.com/Netflix/RxJava/pull/481) Operator: Using
+* [Pull 480](https://github.com/Netflix/RxJava/pull/480) BugFix: Emit an IllegalArgumentException instead of ArithmeticException if the observable is empty
+* [Pull 479](https://github.com/Netflix/RxJava/pull/479) Operator: DoOnEach
+* [Pull 478](https://github.com/Netflix/RxJava/pull/478) Operator: Min, MinBy, Max, MaxBy
+* [Pull 463](https://github.com/Netflix/RxJava/pull/463) Add Timeout Overloads
+
+### Version 0.14.9 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.14.9%22)) ###
+
+* [Pull 477](https://github.com/Netflix/RxJava/pull/477) BugFix: CompositeSubscription
+* [Pull 476](https://github.com/Netflix/RxJava/pull/476) BugFix: Don't emit null onComplete when no onNext received in AsyncSubject
+* [Pull 474](https://github.com/Netflix/RxJava/pull/474) BugFix: Reduce an empty observable
+* [Pull 474](https://github.com/Netflix/RxJava/pull/474) BugFix: non-deterministic unit test
+* [Pull 472](https://github.com/Netflix/RxJava/pull/472) BugFix: Issue 431 Unsubscribe with Schedulers.newThread
+* [Pull 470](https://github.com/Netflix/RxJava/pull/470) Operator: Last
+
+### Version 0.14.8 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.14.8%22)) ###
+
+* [Pull 460](https://github.com/Netflix/RxJava/pull/460) Operator: Amb
+* [Pull 466](https://github.com/Netflix/RxJava/pull/466) Refactor Unit Tests
+
 ### Version 0.14.7 ([Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.netflix.rxjava%22%20AND%20v%3A%220.14.7%22)) ###
 
 * [Pull 459](https://github.com/Netflix/RxJava/pull/459) Fix multiple unsubscribe behavior
