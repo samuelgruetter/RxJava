@@ -27,14 +27,14 @@ import rx.util.functions.Action0;
 
 public final class OperationTimer {
 
-	public static OnSubscribeFunc<Long> timer(long interval, TimeUnit unit) {
+	public static OnSubscribeFunc<Void> timer(long interval, TimeUnit unit) {
         return timer(interval, unit, Schedulers.threadPoolForComputation());
     }
 
-    public static OnSubscribeFunc<Long> timer(final long delay, final TimeUnit unit, final Scheduler scheduler) {
-        return new OnSubscribeFunc<Long>() {
+    public static OnSubscribeFunc<Void> timer(final long delay, final TimeUnit unit, final Scheduler scheduler) {
+        return new OnSubscribeFunc<Void>() {
             @Override
-            public Subscription onSubscribe(Observer<? super Long> observer) {
+            public Subscription onSubscribe(Observer<? super Void> observer) {
                 return new Timer(delay, unit, scheduler, observer).start();
             }
         };
@@ -44,9 +44,9 @@ public final class OperationTimer {
         private final long period;
         private final TimeUnit unit;
         private final Scheduler scheduler;
-        private final Observer<? super Long> observer;
+        private final Observer<? super Void> observer;
         
-        private Timer(long period, TimeUnit unit, Scheduler scheduler, Observer<? super Long> observer) {
+        private Timer(long period, TimeUnit unit, Scheduler scheduler, Observer<? super Void> observer) {
             this.period = period;
             this.unit = unit;
             this.scheduler = scheduler;
@@ -57,7 +57,7 @@ public final class OperationTimer {
             final Subscription s = scheduler.schedule(new Action0() {
                 @Override
                 public void call() {
-                    observer.onNext(0L); // TODO is 0 ok?
+                    observer.onNext(null);
                 }
             }, period, unit);
 
@@ -65,8 +65,6 @@ public final class OperationTimer {
                 @Override
                 public void call() {
                     s.unsubscribe();
-                    // observer.onCompleted(); 
-                    // TODO call onComplete at unsubscribe?? Why does interval() do that?
                 }
             });
         }

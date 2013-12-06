@@ -1999,7 +1999,7 @@ public class Observable<T> {
      * @param unit
      * @return
      */
-    public static Observable<Long> timer(long interval, TimeUnit unit) {
+    public static Observable<Void> timer(long interval, TimeUnit unit) {
         return create(OperationTimer.timer(interval, unit));
     }
     
@@ -2011,7 +2011,7 @@ public class Observable<T> {
      * @param scheduler
      * @return
      */
-    public static Observable<Long> timer(long interval, TimeUnit unit, Scheduler scheduler) {
+    public static Observable<Void> timer(long interval, TimeUnit unit, Scheduler scheduler) {
         return create(OperationTimer.timer(interval, unit, scheduler));
     }
     
