@@ -22,7 +22,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static rx.Observable.interval;
 
 import java.util.concurrent.TimeUnit;
 
@@ -37,66 +36,45 @@ import rx.Observer;
 import rx.Scheduler;
 import rx.concurrency.TestScheduler;
 import rx.observables.ConnectableObservable;
-import rx.subjects.BehaviorSubject;
 import rx.util.functions.Func1;
 
 public final class OperationDelay {
 
-    public static <T> Observable<T> delayOrig1(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
-        // observable.map(x => Observable.timer(t).map(_ => x).cache()).concat()
+	public static <T> Observable<T> delayOrig(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+        // observable.map(x => Observable.timer(t).map(_ => x).startItAlreadyNow()).concat()
     	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
 			public Observable<T> call(final T x) {
-				return Observable.timer(delay, unit, scheduler).map(new Func1<Long, T>() {
-					public T call(Long ignored) {
+				ConnectableObservable<T> co = Observable.timer(delay, unit, scheduler).map(new Func1<Void, T>() {
+					public T call(Void ignored) {
 						return x;
 					}
-				}).cache();
+				}).replay();
+				co.connect();
+				return co;
 			}
 		});
     	return Observable.concat(seqs);
     }
     
-    public static <T> Observable<T> delay(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+	public static <T> Observable<T> delay(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
+        // observable.map(x => Observable.timer(t).map(_ => x).startItAlreadyNow()).concat()
     	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
 			public Observable<T> call(final T x) {
 				System.out.println("map1");
-				final Long DEFAULT = -1L; // only requirement: different than value emitted by Observable.timer()
-				ConnectableObservable<Long> timer = Observable.timer(delay, unit, scheduler).publish();
-				BehaviorSubject<Long> subject = BehaviorSubject.createWithDefaultValue(DEFAULT);
-				timer.subscribe(subject); // TODO do we need a subscribeOn/observeOn here?
-				timer.connect();
-				return subject.filter(new Func1<Long, Boolean>() {
-					public Boolean call(Long l) {
-						System.out.println("filter " + l);
-						return !l.equals(DEFAULT);
-					}
-				}).map(new Func1<Long, T>() {
-					public T call(Long ignored) {
-						System.out.println("map2" + ignored);
-						return x;
-					}
-				});
-			}
-		});
-    	return Observable.concat(seqs);
-    }
-    
-    public static <T> Observable<T> delayDebug(Observable<T> observable, final long delay, final TimeUnit unit, final Scheduler scheduler) {
-        // observable.map(x => Observable.timer(t).map(_ => x).cache()).concat()
-    	Observable<Observable<T>> seqs = observable.map(new Func1<T, Observable<T>>() {
-			public Observable<T> call(final T x) {
-				System.out.println("map1");
-				return Observable.timer(delay, unit, scheduler).map(new Func1<Long, T>() {
-					public T call(Long ignored) {
+				ConnectableObservable<T> co = Observable.timer(delay, unit, scheduler).map(new Func1<Void, T>() {
+					public T call(Void ignored) {
 						System.out.println("map2");
 						return x;
 					}
-				}).cache();
+				}).replay();
+				co.connect();
+				return co;
 			}
 		});
     	return Observable.concat(seqs);
     }
     
+	
     // copied from
     // https://github.com/jmhofer/RxJava/blob/e9027293dadf846b64f62e91da7c5c5850ed76f5/rxjava-core/src/main/java/rx/operators/OperationDelay.java
     // @Ignore
@@ -116,7 +94,7 @@ public final class OperationDelay {
         
         @Test
         public void testDelay() {
-            Observable<Long> source = interval(1L, TimeUnit.SECONDS, scheduler).take(3);
+            Observable<Long> source = Observable.interval(1L, TimeUnit.SECONDS, scheduler).take(3);
             Observable<Long> delayed = OperationDelay.delay(source, 500L, TimeUnit.MILLISECONDS, scheduler);
             delayed.subscribe(observer);
             
@@ -153,15 +131,10 @@ public final class OperationDelay {
             verify(observer, times(1)).onCompleted();
             verify(observer, never()).onError(any(Throwable.class));
         }
-        
-        @Test
-        public void testDelayWithDueTime() {
-        	// TODO
-        }
-        
+
         @Test
         public void testLongDelay() {
-            Observable<Long> source = interval(1L, TimeUnit.SECONDS, scheduler).take(3);
+            Observable<Long> source = Observable.interval(1L, TimeUnit.SECONDS, scheduler).take(3);
             Observable<Long> delayed = OperationDelay.delay(source, 5L, TimeUnit.SECONDS, scheduler);
             delayed.subscribe(observer);
             
@@ -190,7 +163,7 @@ public final class OperationDelay {
         
         @Test
         public void testDelayWithError() {
-            Observable<Long> source = interval(1L, TimeUnit.SECONDS, scheduler).map(new Func1<Long, Long>() {
+            Observable<Long> source = Observable.interval(1L, TimeUnit.SECONDS, scheduler).map(new Func1<Long, Long>() {
                 @Override
                 public Long call(Long value) {
                     if (value == 1L) {
@@ -220,9 +193,11 @@ public final class OperationDelay {
             verify(observer, never()).onCompleted();
         }
         
+        // TODO activate this test once https://github.com/Netflix/RxJava/issues/552 is fixed
+        @Ignore
         @Test
         public void testDelayWithMultipleSubscriptions() {
-            Observable<Long> source = interval(1L, TimeUnit.SECONDS, scheduler).take(3);
+            Observable<Long> source = Observable.interval(1L, TimeUnit.SECONDS, scheduler).take(3);
             Observable<Long> delayed = OperationDelay.delay(source, 500L, TimeUnit.MILLISECONDS, scheduler);
             delayed.subscribe(observer);
             delayed.subscribe(observer2);
@@ -261,5 +236,5 @@ public final class OperationDelay {
             verify(observer2, never()).onError(any(Throwable.class));
         }
     }
-	
+
 }

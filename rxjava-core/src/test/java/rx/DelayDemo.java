@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 
+import rx.concurrency.Schedulers;
 import rx.observables.ConnectableObservable;
 import rx.subjects.BehaviorSubject;
 import rx.util.functions.Action0;
@@ -32,8 +33,8 @@ public class DelayDemo {
 	@Test
 	public void test1() throws Exception {
 		System.out.println("hi");
-		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
-			public void call(Long l) {
+		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Void>() {
+			public void call(Void l) {
 				System.out.println(l);				
 			}
 		});
@@ -45,13 +46,13 @@ public class DelayDemo {
 	@Test
 	public void test1b() throws Exception {
 		System.out.println("hi1b");
-		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
-			public void call(Long l) {
+		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Void>() {
+			public void call(Void l) {
 				System.out.println("A");				
 			}
 		});
-		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
-			public void call(Long l) {
+		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Void>() {
+			public void call(Void l) {
 				System.out.println("B");				
 			}
 		});
@@ -63,8 +64,8 @@ public class DelayDemo {
 	@Test
 	public void test2() throws Exception {
 		System.out.println("hi2");
-		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
-			public void call(Long l) {
+		Observable.timer(1, TimeUnit.SECONDS).subscribe(new Action1<Void>() {
+			public void call(Void l) {
 				System.out.println(l);				
 			}
 		});
@@ -76,11 +77,11 @@ public class DelayDemo {
 	@Test
 	public void test3() throws Exception {
 		System.out.println("hi3" + time());
-		Observable<Long> o = Observable.timer(2, TimeUnit.SECONDS).cache();
+		Observable<Void> o = Observable.timer(2, TimeUnit.SECONDS).cache();
 		Thread.sleep(1000);
 		System.out.println("going to subscribe" + time());
-		o.subscribe(new Action1<Long>() {
-			public void call(Long l) {
+		o.subscribe(new Action1<Void>() {
+			public void call(Void l) {
 				System.out.println(l + time());
 			}
 		});
@@ -88,26 +89,46 @@ public class DelayDemo {
 		System.out.println("done" + time());
 	}
 
+	// When cache replays its observable to a subscriber, it does so with the same timing as it
+	// received the items, but the start time is shifted to the moment when the subscriber subscribes.
+	// This actually makes sense.
+	// Before I thought that when a subscriber subscribes to the cached observable, it gets a burst
+	// of all cached items and the future items at the same time as they are emitted by the original
+	// observable (no time shift), but this turned out to be wrong.
+	
+	// That's wrong. Cache only auto-subscribes once it the first subscriber subscribes!
+		
 	@Test
 	public void test4() throws Exception {
-		// When cache replays its observable to a subscriber, it does so with the same timing as it
-		// received the items, but the start time is shifted to the moment when the subscriber subscribes.
-		// This actually makes sense.
-		// Before I thought that when a subscriber subscribes to the cached observable, it gets a burst
-		// of all cached items and the future items at the same time as they are emitted by the original
-		// observable (no time shift), but this turned out to be wrong.
+
 		Observable<Long> o = Observable.interval(1, TimeUnit.SECONDS).take(3).cache();
-		System.out.println(time() + "created and cached" );
+		System.out.println(time() + " created and cached" );
+		
+		o.subscribe(new Action1<Long>() {
+			public void call(Long l) {
+				System.out.println("a: " + time() + l);
+			}
+		});
+		System.out.println(time() + "a subscribed");
+		
 		Thread.sleep(2000);
 		o.subscribe(new Action1<Long>() {
 			public void call(Long l) {
-				System.out.println(time() + l);
+				System.out.println("b: " + time() + l);
 			}
 		});
-		System.out.println(time() + "subscribed");
+		System.out.println(time() + "b subscribed");
+		
 		Thread.sleep(5000);
 		System.out.println("done" + time());
 	}
+	
+
+	@Test
+	public void cacheTest() throws Exception {
+		
+	}
+	
 
 	@Test
 	public void test5() throws Exception {
@@ -201,5 +222,51 @@ public class DelayDemo {
 		Thread.sleep(7000);
 		System.out.println("done");
 	}
+	
+	@Test
+	public void test10() throws Exception {
+		System.out.println("hello");
+		Observable.from(1L, 2L, 3L).delay(2, TimeUnit.SECONDS).subscribe(new Action1<Long>() {
+			public void call(Long l) {
+				System.out.println(l);				
+			}
+		});
+		
+		Thread.sleep(7000);
+		System.out.println("done");
+	}
+	
+	@Test
+	public void test1902() throws Exception {
+		Observable<Void> ticks = Observable.concat(Observable.timer(1, TimeUnit.SECONDS), Observable.timer(1, TimeUnit.SECONDS), Observable.timer(1, TimeUnit.SECONDS));
+		for (Void v : ticks.toBlockingObservable().toIterable()) {
+			System.out.println("hi");
+		}
+	}
+	
+	@Test public void test11() throws Exception {
+		Scheduler sched = Schedulers.threadPoolForComputation();
+		
+		sched.schedule(new Action0() {
+			public void call() {
+				System.out.println("a");				
+			}
+		}, 2, TimeUnit.SECONDS);
+		
+		sched.schedule(new Action0() {
+			public void call() {
+				System.out.println("b");				
+			}
+		}, 2, TimeUnit.SECONDS);
+		
+		sched.schedule(new Action0() {
+			public void call() {
+				System.out.println("c");				
+			}
+		}, 2, TimeUnit.SECONDS);
+		
+		Thread.sleep(4000);
+	}
+	
 	
 }
