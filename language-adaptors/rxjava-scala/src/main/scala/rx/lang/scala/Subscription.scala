@@ -17,41 +17,46 @@
 
 package rx.lang.scala
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 /**
  * Subscriptions are returned from all `Observable.subscribe` methods to allow unsubscribing.
  *
  * This interface is the equivalent of `IDisposable` in the .NET Rx implementation.
  */
 trait Subscription {
-  val asJavaSubscription: rx.Subscription
+
+  private [scala] val asJavaSubscription: rx.Subscription = new rx.Subscription {
+    override def unsubscribe(){  Subscription.this.unsubscribe() }
+  }
+
 
   /**
    * Call this method to stop receiving notifications on the Observer that was registered when
    * this Subscription was received.
    */
-  def unsubscribe(): Unit = asJavaSubscription.unsubscribe()
+  def unsubscribe(): Unit = { unsubscribed.set(true) }
 
   /**
    * Checks if the subscription is unsubscribed.
    */
-  def isUnsubscribed: Boolean
+  def isUnsubscribed: Boolean = unsubscribed.get()
+  private [scala] val unsubscribed = new AtomicBoolean(false)
+
 }
 
 object Subscription {
 
-  import java.util.concurrent.atomic.AtomicBoolean
-  import rx.lang.scala.subscriptions._
-
 
   /**
-   * Creates an [[rx.lang.scala.Subscription]] from an [[rx.Subscription]].
+   * Creates an [[rx.lang.scala.Subscription]] from an [[rx.Subscription]].             ß
    */
   private [scala] def apply(subscription: rx.Subscription): Subscription = {
     subscription match {
-      case x: rx.subscriptions.BooleanSubscription => new BooleanSubscription(x)
-      case x: rx.subscriptions.CompositeSubscription => new CompositeSubscription(x)
-      case x: rx.subscriptions.MultipleAssignmentSubscription => new MultipleAssignmentSubscription(x)
-      case x: rx.subscriptions.SerialSubscription => new SerialSubscription(x)
+      case x: rx.subscriptions.BooleanSubscription => new rx.lang.scala.subscriptions.BooleanSubscription(x)
+      case x: rx.subscriptions.CompositeSubscription => new rx.lang.scala.subscriptions.CompositeSubscription(x)
+      case x: rx.subscriptions.MultipleAssignmentSubscription => new rx.lang.scala.subscriptions.MultipleAssignmentSubscription(x)
+      case x: rx.subscriptions.SerialSubscription => new rx.lang.scala.subscriptions.SerialSubscription(x)
       case x: rx.Subscription => apply { x.unsubscribe() }
     }
   }
@@ -59,17 +64,17 @@ object Subscription {
   /**
    * Creates an [[rx.lang.scala.Subscription]] that invokes the specified action when unsubscribed.
    */
-  def apply(u: => Unit): Subscription = {
+  def apply(u: => Unit): Subscription =  {
     new Subscription() {
-
-      private val unsubscribed = new AtomicBoolean(false)
-
-      def isUnsubscribed = unsubscribed.get()
-
-      val asJavaSubscription = new rx.Subscription {
-        def unsubscribe() { if(!unsubscribed.get()) { u ; unsubscribed.set(true) }}
+      override def unsubscribe(): Unit = {
+        if(!super.isUnsubscribed) { u; super.unsubscribe() }
       }
     }
   }
+
+  /**
+   * Checks if the subscription is unsubscribed.
+   */
+  def apply(): Subscription = { new Subscription {} }
 
 }

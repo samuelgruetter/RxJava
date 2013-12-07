@@ -15,8 +15,7 @@
  */
 package rx.lang.scala.subscriptions
 
-import rx.lang.scala.Subscription
-import java.util.concurrent.atomic.AtomicBoolean
+import rx.lang.scala._
 
 
 object SerialSubscription {
@@ -41,20 +40,13 @@ object SerialSubscription {
 /**
  * Represents a [[rx.lang.scala.Subscription]] that can be checked for status.
  */
-class SerialSubscription private[scala] (val asJavaSubscription: rx.subscriptions.SerialSubscription)
-  extends Subscription {
+class SerialSubscription private[scala] (override val asJavaSubscription: rx.subscriptions.SerialSubscription) extends Subscription {
 
-  private val unsubscribed = new AtomicBoolean(false)
-
-  /**
-   * Checks whether the subscription has been unsubscribed.
-   */
-  def isUnsubscribed: Boolean = unsubscribed.get()
-
+  //override def asJavaSubscription = s
   /**
    * Unsubscribes this subscription, setting isUnsubscribed to true.
    */
-  override def unsubscribe(): Unit = { super.unsubscribe(); unsubscribed.set(true) }
+  override def unsubscribe(): Unit = { asJavaSubscription.unsubscribe(); unsubscribed.set(true) }
 
   def subscription_=(value: Subscription): Unit = asJavaSubscription.setSubscription(value.asJavaSubscription)
   def subscription: Subscription = Subscription(asJavaSubscription.getSubscription)

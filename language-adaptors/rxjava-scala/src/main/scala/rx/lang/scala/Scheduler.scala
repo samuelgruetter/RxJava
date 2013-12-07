@@ -18,6 +18,7 @@ package rx.lang.scala
 import java.util.Date
 import scala.concurrent.duration.Duration
 import rx.util.functions.{Action0, Action1, Func2}
+import rx.lang.scala.schedulers._
 
 /**
  * Represents an object that schedules units of work.
@@ -25,7 +26,7 @@ import rx.util.functions.{Action0, Action1, Func2}
 trait Scheduler {
   import rx.lang.scala.ImplicitFunctionConversions._
 
-  val asJavaScheduler: rx.Scheduler
+  private [scala] val asJavaScheduler: rx.Scheduler
 
   /**
    * Schedules a cancelable action to be executed.
@@ -75,8 +76,7 @@ trait Scheduler {
    * @return a subscription to be able to unsubscribe from action.
    */
   private def schedule[T](state: T, action: (Scheduler, T) => Subscription, delayTime: Duration): Subscription = {
-    val xxx = schedulerActionToFunc2(action)
-    Subscription(asJavaScheduler.schedule(state, xxx, delayTime.length, delayTime.unit))
+    Subscription(asJavaScheduler.schedule(state, schedulerActionToFunc2(action), delayTime.length, delayTime.unit))
   }
 
   /**
@@ -213,12 +213,16 @@ trait Scheduler {
 
 }
 
-object Scheduler {
-  private [scala] def apply(scheduler: rx.Scheduler): Scheduler = {
-    new Scheduler() {
-       val asJavaScheduler = scheduler
-    }
+private [scala] object Scheduler {
+  def apply(scheduler: rx.Scheduler): Scheduler = scheduler match {
+    case s: rx.concurrency.CurrentThreadScheduler => new CurrentThreadScheduler(s)
+    case s: rx.concurrency.ExecutorScheduler => new ExecutorScheduler(s)
+    case s: rx.concurrency.ImmediateScheduler => new ImmediateScheduler(s)
+    case s: rx.concurrency.NewThreadScheduler => new NewThreadScheduler(s)
+    case s: rx.concurrency.TestScheduler => new TestScheduler(s)
+    case s: rx.Scheduler => new Scheduler{ val asJavaScheduler = s }
   }
+
 }
 
 
