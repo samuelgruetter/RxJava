@@ -43,7 +43,6 @@ object MultipleAssignmentSubscription {
  */
 class MultipleAssignmentSubscription private[scala] (override val asJavaSubscription: rx.subscriptions.MultipleAssignmentSubscription) extends Subscription {
 
-  //override def asJavaSubscription = s
   /**
    * Gets the underlying subscription.
    */
@@ -59,7 +58,6 @@ class MultipleAssignmentSubscription private[scala] (override val asJavaSubscrip
     this
   }
 
-  override def unsubscribe(): Unit =  asJavaSubscription.unsubscribe()
   override def isUnsubscribed: Boolean = asJavaSubscription.isUnsubscribed
 
 }
