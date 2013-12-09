@@ -15,27 +15,22 @@
  */
 package rx.lang.scala
 
-import rx.joins.ObserverBase
+import rx.lang.scala.subjects.PublishSubject
 
 /**
 * A Subject is an Observable and an Observer at the same time.
 */
 trait Subject[T] extends Observable[T] with Observer[T] {
+
   private [scala] val asJavaSubject: rx.subjects.Subject[_ >: T, _<: T]
+  private [scala] override val asJavaObservable: rx.Observable[_ <: T] = asJavaSubject
+  private [scala] override val asJavaObserver: rx.Observer[_ >: T] = asJavaSubject
 
-  val asJavaObservable: rx.Observable[_ <: T] = asJavaSubject
-
-  override val asJavaObserver: rx.Observer[_ >: T] = asJavaSubject
-  override def onNext(value: T): Unit = { asJavaObserver.onNext(value)}
+  override def onNext(value: T): Unit = { asJavaObserver.onNext(value) }
   override def onError(error: Throwable): Unit = { asJavaObserver.onError(error)  }
-  override def onCompleted() { asJavaObserver.onCompleted() }
+  override def onCompleted(): Unit = { asJavaObserver.onCompleted() }
 }
 
 object Subject {
-  def apply[T](): Subject[T] = new rx.lang.scala.subjects.PublishSubject[T](rx.subjects.PublishSubject.create())
+  def apply[T](): Subject[T] = PublishSubject[T]()
 }
-
-
-
-
-
