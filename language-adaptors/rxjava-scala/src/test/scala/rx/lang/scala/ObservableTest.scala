@@ -1,3 +1,18 @@
+/**
+ * Copyright 2013 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package rx.lang.scala
 
 import scala.concurrent.{Future, Await}
@@ -21,7 +36,7 @@ class ObservableTests extends JUnitSuite {
   def testCovariance = {
     //println("hey, you shouldn't run this test")
 
-    val o1: Observable[Nothing] = Observable()
+    val o1: Observable[Nothing] = Observable.empty
     val o2: Observable[Int] = o1
     val o3: Observable[App] = o1
     val o4: Observable[Any] = o2
@@ -32,7 +47,7 @@ class ObservableTests extends JUnitSuite {
 
   @Test
   def testDematerialize() {
-    val o = Observable(1, 2, 3)
+    val o = List(1, 2, 3).toObservable
     val mat = o.materialize
     val demat = mat.dematerialize
 
@@ -61,8 +76,8 @@ class ObservableTests extends JUnitSuite {
   @Test def testFirstOrElse() {
     def mustNotBeCalled: String = sys.error("this method should not be called")
     def mustBeCalled: String = "this is the default value"
-    assertEquals("hello", Observable("hello").firstOrElse(mustNotBeCalled).toBlockingObservable.single)
-    assertEquals("this is the default value", Observable().firstOrElse(mustBeCalled).toBlockingObservable.single)
+    assertEquals("hello", Observable.items("hello").firstOrElse(mustNotBeCalled).toBlockingObservable.single)
+    assertEquals("this is the default value", Observable.empty.firstOrElse(mustBeCalled).toBlockingObservable.single)
   }
 
   @Test def testTestWithError() {

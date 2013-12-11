@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import rx.concurrency.Schedulers;
 import rx.joins.Pattern2;
 import rx.joins.Plan0;
 import rx.observables.BlockingObservable;
@@ -45,6 +44,7 @@ import rx.operators.OperationConcat;
 import rx.operators.OperationDebounce;
 import rx.operators.OperationDefaultIfEmpty;
 import rx.operators.OperationDefer;
+import rx.operators.OperationDelay;
 import rx.operators.OperationDematerialize;
 import rx.operators.OperationDistinct;
 import rx.operators.OperationDistinctUntilChanged;
@@ -92,6 +92,7 @@ import rx.operators.OperationTakeWhile;
 import rx.operators.OperationThrottleFirst;
 import rx.operators.OperationTimeInterval;
 import rx.operators.OperationTimeout;
+import rx.operators.OperationTimer;
 import rx.operators.OperationTimestamp;
 import rx.operators.OperationToMap;
 import rx.operators.OperationToMultimap;
@@ -107,6 +108,7 @@ import rx.operators.SafeObserver;
 import rx.plugins.RxJavaErrorHandler;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
+import rx.schedulers.Schedulers;
 import rx.subjects.AsyncSubject;
 import rx.subjects.PublishSubject;
 import rx.subjects.ReplaySubject;
@@ -118,6 +120,7 @@ import rx.util.TimeInterval;
 import rx.util.Timestamped;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
+import rx.util.functions.Async;
 import rx.util.functions.Func0;
 import rx.util.functions.Func1;
 import rx.util.functions.Func2;
@@ -1990,6 +1993,62 @@ public class Observable<T> {
     }
 
     /**
+     * Emits one item after a given delay, and then completes.
+     * 
+     * @param interval
+     *            interval size in time units
+     * @param unit
+     *            time units to use for the interval size
+     */
+    public static Observable<Void> timer(long interval, TimeUnit unit) {
+        return create(OperationTimer.timer(interval, unit));
+    }
+
+    /**
+     * Emits one item after a given delay, and then completes.
+     * 
+     * @param interval
+     *            interval size in time units
+     * @param unit
+     *            time units to use for the interval size
+     * @param scheduler
+     *            the scheduler to use for scheduling the item
+     */
+    public static Observable<Void> timer(long interval, TimeUnit unit, Scheduler scheduler) {
+        return create(OperationTimer.timer(interval, unit, scheduler));
+    }
+
+    /**
+     * Returns an Observable that emits the results of shifting the items emitted by the source
+     * Observable by a specified delay. Errors emitted by the source Observable are not delayed.
+     * @param delay
+     *            the delay to shift the source by
+     * @param unit
+     *            the {@link TimeUnit} in which <code>period</code> is defined
+     * @return the source Observable, but shifted by the specified delay
+     * @see <a href="http://msdn.microsoft.com/en-us/library/hh229810%28v=vs.103%29.aspx">MSDN: Observable.Delay</a>
+     */
+    public Observable<T> delay(long delay, TimeUnit unit) {
+        return OperationDelay.delay(this, delay, unit, Schedulers.threadPoolForComputation());
+    }
+
+    /**
+     * Returns an Observable that emits the results of shifting the items emitted by the source
+     * Observable by a specified delay. Errors emitted by the source Observable are not delayed.
+     * @param delay
+     *            the delay to shift the source by
+     * @param unit
+     *            the {@link TimeUnit} in which <code>period</code> is defined
+     * @param scheduler
+     *            the {@link Scheduler} to use for delaying
+     * @return the source Observable, but shifted by the specified delay
+     * @see <a href="http://msdn.microsoft.com/en-us/library/hh229280(v=vs.103).aspx">MSDN: Observable.Delay</a>
+     */
+    public Observable<T> delay(long delay, TimeUnit unit, Scheduler scheduler) {
+        return OperationDelay.delay(this, delay, unit, scheduler);
+    }
+
+    /**
      * Drops items emitted by an Observable that are followed by newer items
      * before a timeout value expires. The timer resets on each emission.
      * <p>
@@ -2297,7 +2356,7 @@ public class Observable<T> {
     }
 
     /**
-     * Returns an Observable that emits a Boolean value that indicate
+     * Returns an Observable that emits a Boolean value that indicates
      * whether two sequences are equal by comparing the elements pairwise.
      * <p>
      * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/sequenceEqual.png">
@@ -2305,8 +2364,8 @@ public class Observable<T> {
      * @param first the first Observable to compare
      * @param second the second Observable to compare
      * @param <T> the type of items emitted by each Observable
-     * @return an Observable that emits a Boolean value that indicate
-     *         whether two sequences are equal by comparing the elements pairwise.
+     * @return an Observable that emits a Boolean value that indicates
+     *         whether two sequences are equal by comparing the elements pairwise
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Observable-Utility-Operators#sequenceequal">RxJava Wiki: sequenceEqual()</a>
      */
     public static <T> Observable<Boolean> sequenceEqual(Observable<? extends T> first, Observable<? extends T> second) {
@@ -2322,7 +2381,7 @@ public class Observable<T> {
     }
 
     /**
-     * Returns an Observable that emits a Boolean value that indicate
+     * Returns an Observable that emits a Boolean value that indicates
      * whether two sequences are equal by comparing the elements pairwise
      * based on the results of a specified equality function.
      * <p>
@@ -2333,8 +2392,8 @@ public class Observable<T> {
      * @param equality a function used to compare items emitted by both
      *                 Observables
      * @param <T> the type of items emitted by each Observable
-     * @return an Observable that emits a Boolean value that indicate
-     *         whether two sequences are equal by comparing the elements pairwise.
+     * @return an Observable that emits a Boolean value that indicates
+     *         whether two sequences are equal by comparing the elements pairwise
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Observable-Utility-Operators#sequenceequal">RxJava Wiki: sequenceEqual()</a>
      */
     public static <T> Observable<Boolean> sequenceEqual(Observable<? extends T> first, Observable<? extends T> second, Func2<? super T, ? super T, Boolean> equality) {
@@ -3311,7 +3370,7 @@ public class Observable<T> {
      * invoke {@code onNext} as many times as the number of {@code onNext}
      * invokations of the source Observable that emits the fewest items.
      * <p>
-     * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/zip.png">
+     * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/zip.o.png">
      * 
      * @param ws an Observable of source Observables
      * @param zipFunction a function that, when applied to an item emitted by
@@ -3871,7 +3930,7 @@ public class Observable<T> {
      * 
      * @return an Observable that emits the number of counted elements of the
      *         source Observable as its single item
-     * @see <a href="https://github.com/Netflix/RxJava/wiki/Mathematical-Operators#count">RxJava Wiki: count()</a>
+     * @see <a href="https://github.com/Netflix/RxJava/wiki/Mathematical-Operators#count-and-longcount">RxJava Wiki: count()</a>
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229470.aspx">MSDN: Observable.Count</a>
      * @see #longCount()
      */
@@ -4475,12 +4534,14 @@ public class Observable<T> {
      * Return an Observable that emits the results of sampling the items
      * emitted by this Observable when the <code>sampler</code>
      * Observable produces an item or completes.
+     * <p>
+     * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/sample.o.png">
      * 
      * @param sampler the Observable to use for sampling this
-     * 
      * @return an Observable that emits the results of sampling the items
      *         emitted by this Observable when the <code>sampler</code>
      *         Observable produces an item or completes.
+     * @see <a href="https://github.com/Netflix/RxJava/wiki/Filtering-Observables#sample-or-throttlelast">RxJava Wiki: sample()</a>
      */
     public <U> Observable<T> sample(Observable<U> sampler) {
         return create(new OperationSample.SampleWithObservable<T, U>(this, sampler));
@@ -5198,11 +5259,11 @@ public class Observable<T> {
      * Returns an Observable that counts the total number of items in the
      * source Observable as a 64 bit long.
      * <p>
-     * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/count.png">
+     * <img width="640" src="https://raw.github.com/wiki/Netflix/RxJava/images/rx-operators/longCount.png">
      * 
      * @return an Observable that emits the number of counted elements of the
      *         source Observable as its single, 64 bit long item 
-     * @see <a href="https://github.com/Netflix/RxJava/wiki/Mathematical-Operators#count">RxJava Wiki: count()</a>
+     * @see <a href="https://github.com/Netflix/RxJava/wiki/Mathematical-Operators#count-and-longcount">RxJava Wiki: count()</a>
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229120.aspx">MSDN: Observable.LongCount</a>
      * @see #count()
      */
@@ -6269,4 +6330,40 @@ public class Observable<T> {
     public <TKey, TValue, TDuration> Observable<GroupedObservable<TKey, TValue>> groupByUntil(Func1<? super T, ? extends TKey> keySelector, Func1<? super T, ? extends TValue> valueSelector, Func1<? super GroupedObservable<TKey, TValue>, ? extends Observable<TDuration>> durationSelector) {
         return create(new OperationGroupByUntil<T, TKey, TValue, TDuration>(this, keySelector, valueSelector, durationSelector));
     }
+
+    /**
+     * Invokes the specified function asynchronously, surfacing the result through an observable sequence.
+     * <p>
+     * Note: The function is called immediately, not during the subscription of the resulting
+     * sequence. Multiple subscriptions to the resulting sequence can observe the
+     * function's result.
+     * 
+     * @param func
+     *            Function to run asynchronously.
+     * @return An observable sequence exposing the function's result value, or an exception.
+     * @see <a href="http://msdn.microsoft.com/en-us/library/hh229036(v=vs.103).aspx">MSDN: Observable.Start</a>
+     */
+    public static <T> Observable<T> start(Func0<T> func) {
+        return Async.toAsync(func).call();
+    }
+
+    /**
+     * Invokes the specified function asynchronously on the specified scheduler, surfacing
+     * the result through an observable sequence.
+     * <p>
+     * Note: The function is called immediately, not during the subscription of the resulting
+     * sequence. Multiple subscriptions to the resulting sequence can observe the
+     * function's result.
+     * 
+     * @param func
+     *            Function to run asynchronously.
+     * @param scheduler
+     *            Scheduler to run the function on.
+     * @return An observable sequence exposing the function's result value, or an exception.
+     * @see <a href="http://msdn.microsoft.com/en-us/library/hh211721(v=vs.103).aspx">MSDN: Observable.Start</a>
+     */
+    public static <T> Observable<T> start(Func0<T> func, Scheduler scheduler) {
+        return Async.toAsync(func, scheduler).call();
+    }
+
 }
