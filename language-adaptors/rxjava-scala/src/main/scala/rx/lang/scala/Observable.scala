@@ -409,30 +409,12 @@ trait Observable[+T]
    * @param timespan
    *            The period of time each buffer is collecting values before it should be emitted, and
    *            replaced with a new buffer.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping buffers with a fixed duration.
-   */
-  def buffer(timespan: Duration): Observable[Seq[T]] = {
-    val oJava: rx.Observable[_ <: java.util.List[_]] = asJavaObservable.buffer(timespan.length, timespan.unit)
-    Observable.jObsOfListToScObsOfSeq(oJava.asInstanceOf[rx.Observable[_ <: java.util.List[T]]])
-  }
-
-  /**
-   * Creates an Observable which produces buffers of collected values.
-   *
-   * This Observable produces connected non-overlapping buffers, each of a fixed duration
-   * specified by the `timespan` argument. When the source Observable completes or encounters
-   * an error, the current buffer is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each buffer is collecting values before it should be emitted, and
-   *            replaced with a new buffer.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a buffer.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping buffers with a fixed duration.
    */
-  def buffer(timespan: Duration, scheduler: Scheduler): Observable[Seq[T]] = {
+  def buffer(timespan: Duration)(implicit scheduler: Scheduler with DefaultBufferScheduler): Observable[Seq[T]] = {
     val oJava: rx.Observable[_ <: java.util.List[_]] = asJavaObservable.buffer(timespan.length, timespan.unit, scheduler)
     Observable.jObsOfListToScObsOfSeq(oJava.asInstanceOf[rx.Observable[_ <: java.util.List[T]]])
   }
@@ -448,33 +430,13 @@ trait Observable[+T]
    *            replaced with a new buffer.
    * @param count
    *            The maximum size of each buffer before it should be emitted.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping buffers which are emitted after
-   *         a fixed duration or when the buffer has reached maximum capacity (which ever occurs first).
-   */
-  def buffer(timespan: Duration, count: Int): Observable[Seq[T]] = {
-    val oJava: rx.Observable[_ <: java.util.List[_]] = asJavaObservable.buffer(timespan.length, timespan.unit, count)
-    Observable.jObsOfListToScObsOfSeq(oJava.asInstanceOf[rx.Observable[_ <: java.util.List[T]]])
-  }
-
-  /**
-   * Creates an Observable which produces buffers of collected values. This Observable produces connected
-   * non-overlapping buffers, each of a fixed duration specified by the `timespan` argument or a maximum size
-   * specified by the `count` argument (which ever is reached first). When the source Observable completes
-   * or encounters an error, the current buffer is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each buffer is collecting values before it should be emitted, and
-   *            replaced with a new buffer.
-   * @param count
-   *            The maximum size of each buffer before it should be emitted.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a buffer.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping buffers which are emitted after
    *         a fixed duration or when the buffer has reached maximum capacity (which ever occurs first).
    */
-  def buffer(timespan: Duration, count: Int, scheduler: Scheduler): Observable[Seq[T]] = {
+  def buffer(timespan: Duration, count: Int)(implicit scheduler: Scheduler with DefaultBufferScheduler): Observable[Seq[T]] = {
     val oJava: rx.Observable[_ <: java.util.List[_]] = asJavaObservable.buffer(timespan.length, timespan.unit, count, scheduler)
     Observable.jObsOfListToScObsOfSeq(oJava.asInstanceOf[rx.Observable[_ <: java.util.List[T]]])
   }
@@ -489,35 +451,13 @@ trait Observable[+T]
    *            The period of time each buffer is collecting values before it should be emitted.
    * @param timeshift
    *            The period of time after which a new buffer will be created.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces new buffers periodically, and these are emitted after
-   *         a fixed timespan has elapsed.
-   */
-  def buffer(timespan: Duration, timeshift: Duration): Observable[Seq[T]] = {
-    val span: Long = timespan.length
-    val shift: Long = timespan.unit.convert(timeshift.length, timeshift.unit)
-    val unit: TimeUnit = timespan.unit
-    val oJava: rx.Observable[_ <: java.util.List[_]] = asJavaObservable.buffer(span, shift, unit)
-    Observable.jObsOfListToScObsOfSeq(oJava.asInstanceOf[rx.Observable[_ <: java.util.List[T]]])
-  }
-
-  /**
-   * Creates an Observable which produces buffers of collected values. This Observable starts a new buffer
-   * periodically, which is determined by the `timeshift` argument. Each buffer is emitted after a fixed timespan
-   * specified by the `timespan` argument. When the source Observable completes or encounters an error, the
-   * current buffer is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each buffer is collecting values before it should be emitted.
-   * @param timeshift
-   *            The period of time after which a new buffer will be created.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a buffer.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces new buffers periodically, and these are emitted after
    *         a fixed timespan has elapsed.
    */
-  def buffer(timespan: Duration, timeshift: Duration, scheduler: Scheduler): Observable[Seq[T]] = {
+  def buffer(timespan: Duration, timeshift: Duration)(implicit scheduler: Scheduler with DefaultBufferScheduler): Observable[Seq[T]] = {
     val span: Long = timespan.length
     val shift: Long = timespan.unit.convert(timeshift.length, timeshift.unit)
     val unit: TimeUnit = timespan.unit
@@ -616,28 +556,12 @@ trait Observable[+T]
    * @param timespan
    *            The period of time each window is collecting values before it should be emitted, and
    *            replaced with a new window.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping windows with a fixed duration.
-   */
-  def window(timespan: Duration): Observable[Observable[T]] = {
-    Observable.jObsOfJObsToScObsOfScObs(asJavaObservable.window(timespan.length, timespan.unit))
-      : Observable[Observable[T]] // SI-7818
-  }
-
-  /**
-   * Creates an Observable which produces windows of collected values. This Observable produces connected
-   * non-overlapping windows, each of a fixed duration specified by the `timespan` argument. When the source
-   * Observable completes or encounters an error, the current window is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each window is collecting values before it should be emitted, and
-   *            replaced with a new window.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a window.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping windows with a fixed duration.
    */
-  def window(timespan: Duration, scheduler: Scheduler): Observable[Observable[T]] = {
+  def window(timespan: Duration)(implicit scheduler: Scheduler with DefaultWindowScheduler): Observable[Observable[T]] = {
     Observable.jObsOfJObsToScObsOfScObs(asJavaObservable.window(timespan.length, timespan.unit, scheduler))
       : Observable[Observable[T]] // SI-7818
   }
@@ -653,33 +577,13 @@ trait Observable[+T]
    *            replaced with a new window.
    * @param count
    *            The maximum size of each window before it should be emitted.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping windows which are emitted after
-   *         a fixed duration or when the window has reached maximum capacity (which ever occurs first).
-   */
-  def window(timespan: Duration, count: Int): Observable[Observable[T]] = {
-    Observable.jObsOfJObsToScObsOfScObs(asJavaObservable.window(timespan.length, timespan.unit, count))
-      : Observable[Observable[T]] // SI-7818
-  }
-
-  /**
-   * Creates an Observable which produces windows of collected values. This Observable produces connected
-   * non-overlapping windows, each of a fixed duration specified by the `timespan` argument or a maximum size
-   * specified by the `count` argument (which ever is reached first). When the source Observable completes
-   * or encounters an error, the current window is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each window is collecting values before it should be emitted, and
-   *            replaced with a new window.
-   * @param count
-   *            The maximum size of each window before it should be emitted.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a window.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces connected non-overlapping windows which are emitted after
    *         a fixed duration or when the window has reached maximum capacity (which ever occurs first).
    */
-  def window(timespan: Duration, count: Int, scheduler: Scheduler): Observable[Observable[T]] = {
+  def window(timespan: Duration, count: Int)(implicit scheduler: Scheduler with DefaultWindowScheduler): Observable[Observable[T]] = {
     Observable.jObsOfJObsToScObsOfScObs(asJavaObservable.window(timespan.length, timespan.unit, count, scheduler))
       : Observable[Observable[T]] // SI-7818
   }
@@ -694,35 +598,13 @@ trait Observable[+T]
    *            The period of time each window is collecting values before it should be emitted.
    * @param timeshift
    *            The period of time after which a new window will be created.
-   * @return
-   *         An [[rx.lang.scala.Observable]] which produces new windows periodically, and these are emitted after
-   *         a fixed timespan has elapsed.
-   */
-  def window(timespan: Duration, timeshift: Duration): Observable[Observable[T]] = {
-    val span: Long = timespan.length
-    val shift: Long = timespan.unit.convert(timeshift.length, timeshift.unit)
-    val unit: TimeUnit = timespan.unit
-    Observable.jObsOfJObsToScObsOfScObs(asJavaObservable.window(span, shift, unit))
-      : Observable[Observable[T]] // SI-7818
-  }
-
-  /**
-   * Creates an Observable which produces windows of collected values. This Observable starts a new window
-   * periodically, which is determined by the `timeshift` argument. Each window is emitted after a fixed timespan
-   * specified by the `timespan` argument. When the source Observable completes or encounters an error, the
-   * current window is emitted and the event is propagated.
-   *
-   * @param timespan
-   *            The period of time each window is collecting values before it should be emitted.
-   * @param timeshift
-   *            The period of time after which a new window will be created.
    * @param scheduler
    *            The [[rx.lang.scala.Scheduler]] to use when determining the end and start of a window.
    * @return
    *         An [[rx.lang.scala.Observable]] which produces new windows periodically, and these are emitted after
    *         a fixed timespan has elapsed.
    */
-  def window(timespan: Duration, timeshift: Duration, scheduler: Scheduler): Observable[Observable[T]] = {
+  def window(timespan: Duration, timeshift: Duration)(implicit scheduler: Scheduler with DefaultWindowScheduler): Observable[Observable[T]] = {
     val span: Long = timespan.length
     val shift: Long = timespan.unit.convert(timeshift.length, timeshift.unit)
     val unit: TimeUnit = timespan.unit
@@ -2123,23 +2005,11 @@ object Observable {
    * @param iterable the source `Iterable` sequence
    * @param T the type of items in the `Iterable` sequence and the
    *            type of items to be emitted by the resulting Observable
+   * @param scheduler Scheduler
    * @return an Observable that emits each item in the source `Iterable`
    *         sequence
    */
-  def from[T](iterable: Iterable[T]): Observable[T] = {
-    toScalaObservable(rx.Observable.from(iterable.asJava))
-  }
-
-  /**
-   *
-   * @param iterable  the source `Iterable` sequence
-   * @param scheduler the scheduler to use
-   * @tparam T   the type of items in the `Iterable` sequence and the
-   *            type of items to be emitted by the resulting Observable
-   * @return   an Observable that emits each item in the source `Iterable`
-   *         sequence
-   */
-  def from[T](iterable: Iterable[T], scheduler: Scheduler): Observable[T] = {
+  def from[T](iterable: Iterable[T])(implicit scheduler: Scheduler with DefaultFromScheduler): Observable[T] = {
     toScalaObservable(rx.Observable.from(iterable.asJava, scheduler.asJavaScheduler))
   }
 
@@ -2232,25 +2102,11 @@ object Observable {
    *
    * @param duration
    *            duration between two consecutive numbers
-   * @return An Observable that emits a number each time interval.
-   */
-  def interval(duration: Duration): Observable[Long] = {
-    toScalaObservable[java.lang.Long](rx.Observable.interval(duration.length, duration.unit)).map(_.longValue())
-    /*XXX*/
-  }
-
-  /**
-   * Emits `0`, `1`, `2`, `...` with a delay of `duration` between consecutive numbers.
-   *
-   * <img width="640" src="https://github.com/Netflix/RxJava/wiki/images/rx-operators/interval.png">
-   *
-   * @param duration
-   *            duration between two consecutive numbers
    * @param scheduler
    *            the scheduler to use
    * @return An Observable that emits a number each time interval.
    */
-  def interval(duration: Duration, scheduler: Scheduler): Observable[Long] = {
+  def interval(duration: Duration)(implicit scheduler: Scheduler with DefaultIntervalScheduler): Observable[Long] = {
     toScalaObservable[java.lang.Long](rx.Observable.interval(duration.length, duration.unit, scheduler)).map(_.longValue())
     /*XXX*/
   }

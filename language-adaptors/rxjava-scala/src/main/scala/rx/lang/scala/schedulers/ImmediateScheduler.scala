@@ -27,7 +27,7 @@ object ImmediateScheduler {
   }
 }
 
-class ImmediateScheduler private[scala] (val asJavaScheduler: rx.Scheduler)
-  extends Scheduler {}
+class ImmediateScheduler private[scala] (asJavaScheduler: rx.Scheduler)
+  extends Scheduler(asJavaScheduler) {}
 
 

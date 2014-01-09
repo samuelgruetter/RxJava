@@ -21,15 +21,27 @@ package rx.lang
  * It basically mirrors the structure of package `rx`, but some changes were made to make it more Scala-idiomatic.
  */
 package object scala {
-
+      
+  // one trait for each method in Observable which takes a scheduler
+  trait DefaultBufferScheduler
+  trait DefaultWindowScheduler
+  trait DefaultFromScheduler
+  trait DefaultIntervalScheduler
+  
+  // one implicit conversion for each DefaultXxxScheduler
+  implicit def toDefaultBufferScheduler(s: Scheduler) = new Scheduler(s) with DefaultBufferScheduler
+  implicit def toDefaultWindowScheduler(s: Scheduler) = new Scheduler(s) with DefaultWindowScheduler
+  implicit def toDefaultFromScheduler(s: Scheduler) = new Scheduler(s) with DefaultFromScheduler
+  implicit def toDefaultIntervalScheduler(s: Scheduler) = new Scheduler(s) with DefaultIntervalScheduler
+  
+  import rx.lang.scala.schedulers.DefaultImplicits._
+  
   /**
    * Placeholder for extension methods into Observable[T] from other types
    */
   implicit class ObservableExtensions[T](val source: Iterable[T]) extends AnyVal {
       def toObservable: Observable[T] = {  Observable.from(source) }
-      def toObservable(scheduler: Scheduler): Observable[T] = {  Observable.from(source, scheduler) }
+      def toObservable(scheduler: Scheduler): Observable[T] = {  Observable.from(source)(scheduler) }
   }
-
-
 
 }

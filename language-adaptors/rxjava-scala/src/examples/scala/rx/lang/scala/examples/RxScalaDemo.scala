@@ -31,6 +31,7 @@ import org.scalatest.junit.JUnitSuite
 
 import rx.lang.scala._
 import rx.lang.scala.schedulers._
+import rx.lang.scala.schedulers.DefaultImplicits._
 
 @Ignore // Since this doesn't do automatic testing, don't increase build time unnecessarily
 class RxScalaDemo extends JUnitSuite {

@@ -23,10 +23,12 @@ import rx.lang.scala.schedulers._
 /**
  * Represents an object that schedules units of work.
  */
-trait Scheduler {
+class Scheduler(s: rx.Scheduler) {
+  def this(s: Scheduler) = this(s.asJavaScheduler)
+  
   import rx.lang.scala.ImplicitFunctionConversions._
 
-  private [scala] val asJavaScheduler: rx.Scheduler
+  private [scala] val asJavaScheduler: rx.Scheduler = s
 
   /**
    * Schedules a cancelable action to be executed.
@@ -209,7 +211,7 @@ private [scala] object Scheduler {
     case s: rx.schedulers.ImmediateScheduler => new ImmediateScheduler(s)
     case s: rx.schedulers.NewThreadScheduler => new NewThreadScheduler(s)
     case s: rx.schedulers.TestScheduler => new TestScheduler(s)
-    case s: rx.Scheduler => new Scheduler{ val asJavaScheduler = s }
+    case s: rx.Scheduler => new Scheduler(s)
   }
 
 }

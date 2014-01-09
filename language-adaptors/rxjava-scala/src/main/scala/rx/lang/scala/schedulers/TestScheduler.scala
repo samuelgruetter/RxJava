@@ -64,7 +64,8 @@ object TestScheduler {
  * }
  * }}}
  */
-class TestScheduler private[scala] (val asJavaScheduler: rx.schedulers.TestScheduler) extends Scheduler {
+class TestScheduler private[scala] (asJavaScheduler: rx.schedulers.TestScheduler) 
+extends Scheduler(asJavaScheduler) {
 
   def advanceTimeBy(time: Duration) {
     asJavaScheduler.advanceTimeBy(time.length, time.unit)

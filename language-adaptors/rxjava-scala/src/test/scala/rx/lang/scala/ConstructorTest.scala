@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 package rx.lang.scala
+
 import scala.language.postfixOps
 import org.junit.Assert._
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
+
+import rx.lang.scala.schedulers.DefaultImplicits._
 
 class ConstructorTest extends JUnitSuite {
 

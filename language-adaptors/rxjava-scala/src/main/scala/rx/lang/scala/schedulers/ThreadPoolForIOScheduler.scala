@@ -33,5 +33,5 @@ object ThreadPoolForIOScheduler {
   }
 }
 
-class ThreadPoolForIOScheduler private[scala] (val asJavaScheduler: rx.Scheduler)
-  extends Scheduler {}
+class ThreadPoolForIOScheduler private[scala] (asJavaScheduler: rx.Scheduler)
+  extends Scheduler(asJavaScheduler) {}

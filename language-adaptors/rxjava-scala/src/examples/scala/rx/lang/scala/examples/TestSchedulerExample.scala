@@ -33,7 +33,7 @@ class TestSchedulerExample extends JUnitSuite {
     // Use a Java Observer for Mockito
     val observer = mock(classOf[rx.Observer[Long]])
 
-    val o = Observable.interval(1 second, scheduler)
+    val o = Observable.interval(1 second)(scheduler)
 
     // Wrap Java Observer in Scala Observer, then subscribe
     val sub = o.subscribe(Observer(observer))

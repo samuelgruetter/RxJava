@@ -28,6 +28,6 @@ object ScheduledExecutorServiceScheduler {
   }
 }
 
-class ScheduledExecutorServiceScheduler private[scala] (val asJavaScheduler: rx.Scheduler)
-  extends Scheduler {}
+class ScheduledExecutorServiceScheduler private[scala] (asJavaScheduler: rx.Scheduler)
+  extends Scheduler(asJavaScheduler) {}
 
