@@ -1342,10 +1342,8 @@ trait Observable[+T]
    *         contains all items for which `f` returned `key` before `closings` emits a value.
    */
   def groupByUntil[K, Closing](f: T => K, closings: Observable[T]=>Observable[Closing]): Observable[(K, Observable[T])] = {
-    val closing = (o: rx.observables.GroupedObservable[K,T]) => closings(toScalaObservable[T](o)).asJavaObservable
-    val fclosing = new Func1[rx.observables.GroupedObservable[K, T], rx.Observable[_ <: Closing]] {
-      def call(o: rx.observables.GroupedObservable[K, T]) = closing(o)
-    }.asInstanceOf[Func1[_ >: rx.observables.GroupedObservable[K, _ <: T], _ <: rx.Observable[Closing]]]
+    val fclosing: Func1[_ >: rx.observables.GroupedObservable[K, _ <: T], _ <: rx.Observable[_ <: Closing]]
+     = (jGrObs: rx.observables.GroupedObservable[K, _ <: T]) => closings(toScalaObservable[T](jGrObs)).asJavaObservable
     val o1 = asJavaObservable.groupByUntil[K, Closing](f, fclosing) : rx.Observable[_ <: rx.observables.GroupedObservable[K, _ <: T]]
     val func = (o: rx.observables.GroupedObservable[K, _ <: T]) => (o.getKey, toScalaObservable[T](o))
     toScalaObservable[(K, Observable[T])](o1.map[(K, Observable[T])](func))
