@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package rx.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Exception that is a composite of 1 or more other exceptions.
@@ -65,7 +67,8 @@ public final class CompositeException extends RuntimeException {
         return cause;
     }
 
-    @SuppressWarnings("unused") // useful when debugging but don't want to make part of publicly supported API
+    @SuppressWarnings("unused")
+    // useful when debugging but don't want to make part of publicly supported API
     private static String getStackTraceAsString(StackTraceElement[] stack) {
         StringBuilder s = new StringBuilder();
         boolean firstLine = true;
@@ -83,9 +86,16 @@ public final class CompositeException extends RuntimeException {
         return s.toString();
     }
 
-    private static void attachCallingThreadStack(Throwable e, Throwable cause) {
+    /* package-private */ static void attachCallingThreadStack(Throwable e, Throwable cause) {
+        Set<Throwable> seenCauses = new HashSet<Throwable>();
+
         while (e.getCause() != null) {
             e = e.getCause();
+            if (seenCauses.contains(e.getCause())) {
+                break;
+            } else {
+                seenCauses.add(e.getCause());
+            }
         }
         // we now have 'e' as the last in the chain
         try {
@@ -97,12 +107,13 @@ public final class CompositeException extends RuntimeException {
         }
     }
 
-    private final static class CompositeExceptionCausalChain extends RuntimeException {
+    /* package-private */ final static class CompositeExceptionCausalChain extends RuntimeException {
         private static final long serialVersionUID = 3875212506787802066L;
+        /* package-private */ static String MESSAGE = "Chain of Causes for CompositeException In Order Received =>";
 
         @Override
         public String getMessage() {
-            return "Chain of Causes for CompositeException In Order Received =>";
+            return MESSAGE;
         }
     }
 

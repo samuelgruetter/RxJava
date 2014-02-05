@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class ErrorHandlingTests {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> caughtError = new AtomicReference<Throwable>();
         Observable<Long> o = Observable.interval(50, TimeUnit.MILLISECONDS);
-        Observer<Long> observer = new Observer<Long>() {
+        Subscriber<Long> observer = new Subscriber<Long>() {
 
             @Override
             public void onCompleted() {
@@ -70,7 +70,7 @@ public class ErrorHandlingTests {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Throwable> caughtError = new AtomicReference<Throwable>();
         Observable<Long> o = Observable.interval(50, TimeUnit.MILLISECONDS);
-        Observer<Long> observer = new Observer<Long>() {
+        Subscriber<Long> observer = new Subscriber<Long>() {
 
             @Override
             public void onCompleted() {

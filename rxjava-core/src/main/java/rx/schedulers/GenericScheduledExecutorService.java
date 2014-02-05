@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import rx.Scheduler;
  * <p>
  * NOTE: No actual work should be done on tasks submitted to this executor. Submit a task with the appropriate delay which then in turn invokes
  * the work asynchronously on the appropriate {@link Scheduler} implementation. This means for example that you would not use this approach
- * along with {@link CurrentThreadScheduler} or {@link ImmediateScheduler}.
+ * along with {@link TrampolineScheduler} or {@link ImmediateScheduler}.
  */
 /* package */class GenericScheduledExecutorService {
 

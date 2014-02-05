@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
  */
 package rx.operators;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import rx.Observable;
 import rx.Observable.OnSubscribeFunc;
 import rx.Observer;
 import rx.Scheduler;
+import rx.Scheduler.Inner;
 import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 import rx.util.functions.Action0;
-import rx.util.functions.Func2;
+import rx.util.functions.Action1;
 
 /**
  * Asynchronously subscribes and unsubscribes Observers on the specified Scheduler.
@@ -45,32 +50,48 @@ public class OperationSubscribeOn {
 
         @Override
         public Subscription onSubscribe(final Observer<? super T> observer) {
-            return scheduler.schedule(null, new Func2<Scheduler, T, Subscription>() {
+            final CompositeSubscription s = new CompositeSubscription();
+            scheduler.schedule(new Action1<Inner>() {
+
                 @Override
-                public Subscription call(Scheduler s, T t) {
-                    return new ScheduledSubscription(source.subscribe(observer), scheduler);
+                public void call(final Inner inner) {
+                    s.add(new ScheduledSubscription(source.subscribe(observer), inner));
                 }
+
             });
+            // only include the ScheduledSubscription
+            // but not the actual Subscription from the Scheduler as we need to schedule the unsubscribe action
+            // and therefore can't unsubscribe the scheduler until after the unsubscribe happens
+            return s;
         }
     }
 
     private static class ScheduledSubscription implements Subscription {
         private final Subscription underlying;
-        private final Scheduler scheduler;
+        private volatile boolean unsubscribed = false;
+        private final Scheduler.Inner scheduler;
 
-        private ScheduledSubscription(Subscription underlying, Scheduler scheduler) {
+        private ScheduledSubscription(Subscription underlying, Inner scheduler) {
             this.underlying = underlying;
             this.scheduler = scheduler;
         }
 
         @Override
         public void unsubscribe() {
-            scheduler.schedule(new Action0() {
+            unsubscribed = true;
+            scheduler.schedule(new Action1<Inner>() {
                 @Override
-                public void call() {
+                public void call(Inner inner) {
                     underlying.unsubscribe();
+                    // tear down this subscription as well now that we're done
+                    inner.unsubscribe();
                 }
             });
+        }
+
+        @Override
+        public boolean isUnsubscribed() {
+            return unsubscribed;
         }
     }
 }

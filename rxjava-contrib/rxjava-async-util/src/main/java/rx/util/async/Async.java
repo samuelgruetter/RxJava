@@ -18,8 +18,10 @@ package rx.util.async;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+
 import rx.Observable;
 import rx.Scheduler;
+import rx.Scheduler.Inner;
 import rx.schedulers.Schedulers;
 import rx.subjects.AsyncSubject;
 import rx.util.async.operators.Functionals;
@@ -117,7 +119,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229868.aspx">MSDN: Observable.ToAsync</a>
      */
     public static Func0<Observable<Void>> toAsync(Action0 action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -134,7 +136,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229182.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <R> Func0<Observable<R>> toAsync(Func0<? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -151,7 +153,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229657.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1> Func1<T1, Observable<Void>> toAsync(Action1<? super T1> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -169,7 +171,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229755.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, R> Func1<T1, Observable<R>> toAsync(Func1<? super T1, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -187,7 +189,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh211875.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2> Func2<T1, T2, Observable<Void>> toAsync(Action2<? super T1, ? super T2> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -206,7 +208,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229851.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, R> Func2<T1, T2, Observable<R>> toAsync(Func2<? super T1, ? super T2, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -225,7 +227,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229336.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3> Func3<T1, T2, T3, Observable<Void>> toAsync(Action3<? super T1, ? super T2, ? super T3> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -245,7 +247,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229450.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, R> Func3<T1, T2, T3, Observable<R>> toAsync(Func3<? super T1, ? super T2, ? super T3, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -265,7 +267,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229769.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4> Func4<T1, T2, T3, T4, Observable<Void>> toAsync(Action4<? super T1, ? super T2, ? super T3, ? super T4> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -286,7 +288,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229911.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, R> Func4<T1, T2, T3, T4, Observable<R>> toAsync(Func4<? super T1, ? super T2, ? super T3, ? super T4, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -307,7 +309,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229577.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5> Func5<T1, T2, T3, T4, T5, Observable<Void>> toAsync(Action5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -329,7 +331,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229571.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, R> Func5<T1, T2, T3, T4, T5, Observable<R>> toAsync(Func5<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -351,7 +353,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh211773.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6> Func6<T1, T2, T3, T4, T5, T6, Observable<Void>> toAsync(Action6<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -374,7 +376,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229716.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, R> Func6<T1, T2, T3, T4, T5, T6, Observable<R>> toAsync(Func6<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -397,7 +399,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh211812.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7> Func7<T1, T2, T3, T4, T5, T6, T7, Observable<Void>> toAsync(Action7<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -421,7 +423,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229773.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7, R> Func7<T1, T2, T3, T4, T5, T6, T7, Observable<R>> toAsync(Func7<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -445,7 +447,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh228993.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8> Func8<T1, T2, T3, T4, T5, T6, T7, T8, Observable<Void>> toAsync(Action8<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7, ? super T8> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -470,7 +472,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh229910.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, R> Func8<T1, T2, T3, T4, T5, T6, T7, T8, Observable<R>> toAsync(Func8<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7, ? super T8, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -495,7 +497,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh211702.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9> Func9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Observable<Void>> toAsync(Action9<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7, ? super T8, ? super T9> action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -521,7 +523,7 @@ public final class Async {
      * @see <a href="http://msdn.microsoft.com/en-us/library/hh212074.aspx">MSDN: Observable.ToAsync</a>
      */
     public static <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> Func9<T1, T2, T3, T4, T5, T6, T7, T8, T9, Observable<R>> toAsync(Func9<? super T1, ? super T2, ? super T3, ? super T4, ? super T5, ? super T6, ? super T7, ? super T8, ? super T9, ? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -536,7 +538,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#toasync-or-asyncaction-or-asyncfunc">RxJava Wiki: toAsync()</a>
      */
     public static FuncN<Observable<Void>> toAsync(ActionN action) {
-        return toAsync(action, Schedulers.threadPoolForComputation());
+        return toAsync(action, Schedulers.computation());
     }
     
     /**
@@ -552,7 +554,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#toasync-or-asyncaction-or-asyncfunc">RxJava Wiki: toAsync()</a>
      */
     public static <R> FuncN<Observable<R>> toAsync(FuncN<? extends R> func) {
-        return toAsync(func, Schedulers.threadPoolForComputation());
+        return toAsync(func, Schedulers.computation());
     }
     
     /**
@@ -591,9 +593,9 @@ public final class Async {
             @Override
             public Observable<R> call() {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call();
@@ -648,9 +650,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1);
@@ -707,9 +709,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2);
@@ -768,9 +770,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3);
@@ -831,9 +833,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4);
@@ -896,9 +898,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4, t5);
@@ -963,9 +965,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5, final T6 t6) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4, t5, t6);
@@ -1032,9 +1034,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5, final T6 t6, final T7 t7) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4, t5, t6, t7);
@@ -1103,9 +1105,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5, final T6 t6, final T7 t7, final T8 t8) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4, t5, t6, t7, t8);
@@ -1176,9 +1178,9 @@ public final class Async {
             @Override
             public Observable<R> call(final T1 t1, final T2 t2, final T3 t3, final T4 t4, final T5 t5, final T6 t6, final T7 t7, final T8 t8, final T9 t9) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(t1, t2, t3, t4, t5, t6, t7, t8, t9);
@@ -1229,9 +1231,9 @@ public final class Async {
             @Override
             public Observable<R> call(final Object... args) {
                 final AsyncSubject<R> subject = AsyncSubject.create();
-                scheduler.schedule(new Action0() {
+                scheduler.schedule(new Action1<Inner>() {
                     @Override
-                    public void call() {
+                    public void call(Inner inner) {
                         R result;
                         try {
                             result = func.call(args);
@@ -1570,7 +1572,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#fromaction">RxJava Wiki: fromAction()</a>
      */
     public static <R> Observable<R> fromAction(Action0 action, R result) {
-        return fromAction(action, result, Schedulers.threadPoolForComputation());
+        return fromAction(action, result, Schedulers.computation());
     }
     
     /**
@@ -1590,7 +1592,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#fromfunc0">RxJava Wiki: fromFunc0()</a>
      */
     public static <R> Observable<R> fromFunc0(Func0<? extends R> function) {
-        return fromFunc0(function, Schedulers.threadPoolForComputation());
+        return fromFunc0(function, Schedulers.computation());
     }
 
     /**
@@ -1610,7 +1612,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#fromcallable">RxJava Wiki: fromCallable()</a>
      */
     public static <R> Observable<R> fromCallable(Callable<? extends R> callable) {
-        return fromCallable(callable, Schedulers.threadPoolForComputation());
+        return fromCallable(callable, Schedulers.computation());
     }
     
     /**
@@ -1629,7 +1631,7 @@ public final class Async {
      * @see <a href="https://github.com/Netflix/RxJava/wiki/Async-Operators#fromrunnable">RxJava Wiki: fromRunnable()</a>
      */
     public static <R> Observable<R> fromRunnable(final Runnable run, final R result) {
-        return fromRunnable(run, result, Schedulers.threadPoolForComputation());
+        return fromRunnable(run, result, Schedulers.computation());
     }
     
     /**

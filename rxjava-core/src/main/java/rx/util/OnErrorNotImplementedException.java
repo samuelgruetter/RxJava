@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package rx.util;
 
-import rx.Observer;
+import rx.Subscriber;
 
 /**
- * Used for re-throwing {@link Observer#onError(Throwable)} when an implementation doesn't exist.
+ * Used for re-throwing {@link Subscriber#onError(Throwable)} when an implementation doesn't exist.
  * 
  * https://github.com/Netflix/RxJava/issues/198
  * 

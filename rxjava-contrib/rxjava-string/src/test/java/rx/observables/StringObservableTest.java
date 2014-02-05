@@ -16,6 +16,8 @@
 package rx.observables;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -23,10 +25,10 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.MalformedInputException;
 
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 
 import rx.Observable;
 import rx.Observer;
+import rx.observers.TestObserver;
 import rx.util.AssertObservable;
 
 public class StringObservableTest {
@@ -136,7 +138,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, times(1)).onNext("a, 1, c");
         verify(observer, times(1)).onCompleted();
@@ -150,7 +152,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, times(1)).onNext(", b, c");
         verify(observer, times(1)).onCompleted();
@@ -164,7 +166,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, times(1)).onNext("a, null, c");
         verify(observer, times(1)).onCompleted();
@@ -178,7 +180,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, times(1)).onNext("a");
         verify(observer, times(1)).onCompleted();
@@ -192,7 +194,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, times(1)).onNext("");
         verify(observer, times(1)).onCompleted();
@@ -206,7 +208,7 @@ public class StringObservableTest {
         
         Observer<Object> observer = mock(Observer.class);
         
-        result.subscribe(observer);
+        result.subscribe(new TestObserver<Object>(observer));
         
         verify(observer, never()).onNext("a");
         verify(observer, never()).onCompleted();

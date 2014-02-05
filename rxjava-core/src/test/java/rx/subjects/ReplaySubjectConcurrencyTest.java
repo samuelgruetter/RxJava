@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.junit.Test;
 import rx.Observable;
 import rx.Observable.OnSubscribeFunc;
 import rx.Observer;
+import rx.Subscriber;
 import rx.Subscription;
 import rx.subscriptions.Subscriptions;
 import rx.util.functions.Action1;
@@ -80,7 +81,7 @@ public class ReplaySubjectConcurrencyTest {
 
             @Override
             public void run() {
-                Observer<Long> slow = new Observer<Long>() {
+                Subscriber<Long> slow = new Subscriber<Long>() {
 
                     @Override
                     public void onCompleted() {
@@ -121,7 +122,7 @@ public class ReplaySubjectConcurrencyTest {
             @Override
             public void run() {
                 final CountDownLatch fastLatch = new CountDownLatch(1);
-                Observer<Long> fast = new Observer<Long>() {
+                Subscriber<Long> fast = new Subscriber<Long>() {
 
                     @Override
                     public void onCompleted() {

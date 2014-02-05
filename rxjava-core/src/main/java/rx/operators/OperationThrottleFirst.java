@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public final class OperationThrottleFirst {
      * @return A {@link Func1} which performs the throttle operation.
      */
     public static <T> OnSubscribeFunc<T> throttleFirst(Observable<T> items, long windowDuration, TimeUnit unit) {
-        return throttleFirst(items, windowDuration, unit, Schedulers.threadPoolForComputation());
+        return throttleFirst(items, windowDuration, unit, Schedulers.computation());
     }
 
     /**

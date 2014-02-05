@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
-import rx.Observable.OnSubscribeFunc;
 import rx.Observer;
+import rx.Subscriber;
 import rx.Subscription;
+import rx.Observable.OnSubscribe;
 import rx.operators.SafeObservableSubscription;
 import rx.subscriptions.Subscriptions;
+import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 
 /* package */class SubjectSubscriptionManager<T> {
@@ -39,11 +41,11 @@ import rx.util.functions.Action1;
      *            Only runs if Subject is in terminal state and the Observer ends up not being registered.
      * @return
      */
-    public OnSubscribeFunc<T> getOnSubscribeFunc(final Action1<SubjectObserver<? super T>> onSubscribe, final Action1<SubjectObserver<? super T>> onTerminated) {
-        return new OnSubscribeFunc<T>() {
+    public OnSubscribe<T> getOnSubscribeFunc(final Action1<SubjectObserver<? super T>> onSubscribe, final Action1<SubjectObserver<? super T>> onTerminated) {
+        return new OnSubscribe<T>() {
             @Override
-            public Subscription onSubscribe(Observer<? super T> actualObserver) {
-                SubjectObserver<T> observer = new SubjectObserver<T>(actualObserver);
+            public void call(Subscriber<? super T> actualOperator) {
+                SubjectObserver<T> observer = new SubjectObserver<T>(actualOperator);
                 // invoke onSubscribe logic 
                 if (onSubscribe != null) {
                     onSubscribe.call(observer);
@@ -52,12 +54,10 @@ import rx.util.functions.Action1;
                 State<T> current;
                 State<T> newState = null;
                 boolean addedObserver = false;
-                Subscription s;
                 do {
                     current = state.get();
                     if (current.terminated) {
                         // we are terminated so don't need to do anything
-                        s = Subscriptions.empty();
                         addedObserver = false;
                         // break out and don't try to modify state
                         newState = current;
@@ -71,11 +71,12 @@ import rx.util.functions.Action1;
                         break;
                     } else {
                         final SafeObservableSubscription subscription = new SafeObservableSubscription();
-                        s = subscription;
+                        actualOperator.add(subscription); // add to parent if the Subject itself is unsubscribed
                         addedObserver = true;
-                        subscription.wrap(new Subscription() {
+                        subscription.wrap(Subscriptions.create(new Action0() {
+
                             @Override
-                            public void unsubscribe() {
+                            public void call() {
                                 State<T> current;
                                 State<T> newState;
                                 do {
@@ -84,7 +85,7 @@ import rx.util.functions.Action1;
                                     newState = current.removeObserver(subscription);
                                 } while (!state.compareAndSet(current, newState));
                             }
-                        });
+                        }));
 
                         // on subscribe add it to the map of outbound observers to notify
                         newState = current.addObserver(subscription, observer);
@@ -97,13 +98,12 @@ import rx.util.functions.Action1;
                 if (newState.terminated && !addedObserver) {
                     onTerminated.call(observer);
                 }
-
-                return s;
             }
 
         };
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void terminate(Action1<Collection<SubjectObserver<? super T>>> onTerminate) {
         State<T> current;
         State<T> newState = null;
@@ -125,17 +125,20 @@ import rx.util.functions.Action1;
          */
         try {
             // had to circumvent type check, we know what the array contains
-            onTerminate.call((Collection)Arrays.asList(newState.observers));
+            onTerminate.call((Collection) Arrays.asList(newState.observers));
         } finally {
             // mark that termination is completed
             newState.terminationLatch.countDown();
         }
     }
+
     /**
      * Returns the array of observers directly.
      * <em>Don't modify the array!</em>
+     * 
      * @return the array of current observers
      */
+    @SuppressWarnings("unchecked")
     public SubjectObserver<Object>[] rawSnapshot() {
         return state.get().observers;
     }
@@ -150,7 +153,8 @@ import rx.util.functions.Action1;
         final Subscription[] EMPTY_S = new Subscription[0];
         // to avoid lots of empty arrays
         final SubjectObserver[] EMPTY_O = new SubjectObserver[0];
-        private State(boolean isTerminated, CountDownLatch terminationLatch, 
+
+        private State(boolean isTerminated, CountDownLatch terminationLatch,
                 Subscription[] subscriptions, SubjectObserver[] observers) {
             this.terminationLatch = terminationLatch;
             this.terminated = isTerminated;
@@ -174,15 +178,16 @@ import rx.util.functions.Action1;
 
         public State<T> addObserver(Subscription s, SubjectObserver<? super T> observer) {
             int n = this.observers.length;
-            
+
             Subscription[] newsubscriptions = Arrays.copyOf(this.subscriptions, n + 1);
             SubjectObserver[] newobservers = Arrays.copyOf(this.observers, n + 1);
-            
+
             newsubscriptions[n] = s;
             newobservers[n] = observer;
-            
+
             return createNewWith(newsubscriptions, newobservers);
         }
+
         private State<T> createNewWith(Subscription[] newsubscriptions, SubjectObserver[] newobservers) {
             return new State<T>(terminated, terminationLatch, newsubscriptions, newobservers);
         }
@@ -211,7 +216,7 @@ import rx.util.functions.Action1;
                     copied++;
                 }
             }
-            
+
             if (copied == 0) {
                 return createNewWith(EMPTY_S, EMPTY_O);
             }

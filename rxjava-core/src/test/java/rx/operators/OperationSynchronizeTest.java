@@ -1,12 +1,12 @@
 /**
- * Copyright 2013 Netflix, Inc.
- *
+ * Copyright 2014 Netflix, Inc.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,11 @@ public class OperationSynchronizeTest {
         Observer<String> w = mock(Observer.class);
         Subscription ws = st.subscribe(w);
 
+        System.out.println("ws: " + ws);
+        
         t.sendOnNext("one");
         ws.unsubscribe();
+        System.out.println("send onCompleted");
         t.sendOnCompleted();
 
         verify(w, times(1)).onNext("one");
@@ -210,6 +213,12 @@ public class OperationSynchronizeTest {
                 @Override
                 public void unsubscribe() {
                     // going to do nothing to pretend I'm a bad Observable that keeps allowing events to be sent
+                    System.out.println("==> SynchronizeTest unsubscribe that does nothing!");
+                }
+
+                @Override
+                public boolean isUnsubscribed() {
+                    return false;
                 }
 
             };

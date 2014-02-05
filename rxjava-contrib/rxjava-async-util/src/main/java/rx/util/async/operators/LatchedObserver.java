@@ -18,6 +18,7 @@ package rx.util.async.operators;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import rx.Observer;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;

@@ -33,6 +33,7 @@ import rx.Observable;
 import rx.Observer;
 import rx.Statement;
 import rx.Subscription;
+import rx.observers.TestObserver;
 import rx.schedulers.Schedulers;
 import rx.schedulers.TestScheduler;
 import rx.util.functions.Func0;
@@ -108,7 +109,7 @@ public class OperationConditionalsTest {
     <T> void observe(Observable<? extends T> source, T... values) {
         Observer<T> o = mock(Observer.class);
 
-        Subscription s = source.subscribe(o);
+        Subscription s = source.subscribe(new TestObserver<T>(o));
 
         InOrder inOrder = inOrder(o);
 
@@ -127,7 +128,7 @@ public class OperationConditionalsTest {
     <T> void observeSequence(Observable<? extends T> source, Iterable<? extends T> values) {
         Observer<T> o = mock(Observer.class);
 
-        Subscription s = source.subscribe(o);
+        Subscription s = source.subscribe(new TestObserver<T>(o));
 
         InOrder inOrder = inOrder(o);
 
@@ -146,7 +147,7 @@ public class OperationConditionalsTest {
     <T> void observeError(Observable<? extends T> source, Class<? extends Throwable> error, T... valuesBeforeError) {
         Observer<T> o = mock(Observer.class);
 
-        Subscription s = source.subscribe(o);
+        Subscription s = source.subscribe(new TestObserver<T>(o));
 
         InOrder inOrder = inOrder(o);
 
@@ -165,7 +166,7 @@ public class OperationConditionalsTest {
     <T> void observeSequenceError(Observable<? extends T> source, Class<? extends Throwable> error, Iterable<? extends T> valuesBeforeError) {
         Observer<T> o = mock(Observer.class);
 
-        Subscription s = source.subscribe(o);
+        Subscription s = source.subscribe(new TestObserver<T>(o));
 
         InOrder inOrder = inOrder(o);
 

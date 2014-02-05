@@ -56,7 +56,9 @@ import rx.util.OnErrorNotImplementedException;
  * It will not synchronize onNext execution. Use the {@link SynchronizedObserver} to do that.
  * 
  * @param <T>
+ * @Deprecated Replaced by SafeSubscriber
  */
+@Deprecated
 public class SafeObserver<T> implements Observer<T> {
 
     private final Observer<? super T> actual;

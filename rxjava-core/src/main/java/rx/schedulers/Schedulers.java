@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,23 @@ public class Schedulers {
     /**
      * {@link Scheduler} that queues work on the current thread to be executed after the current work completes.
      * 
-     * @return {@link CurrentThreadScheduler} instance
+     * @return {@link TrampolineScheduler} instance
+     * @deprecated Use trampoline() instead
      */
+    @Deprecated
     public static Scheduler currentThread() {
-        return CurrentThreadScheduler.getInstance();
+        return TrampolineScheduler.getInstance();
     }
 
+    /**
+     * {@link Scheduler} that queues work on the current thread to be executed after the current work completes.
+     * 
+     * @return {@link TrampolineScheduler} instance
+     */
+    public static Scheduler trampoline() {
+        return TrampolineScheduler.getInstance();
+    }
+    
     /**
      * {@link Scheduler} that creates a new {@link Thread} for each unit of work.
      * 
@@ -98,7 +109,7 @@ public class Schedulers {
     public static Scheduler threadPoolForComputation() {
         return executor(COMPUTATION_EXECUTOR);
     }
-    
+
     /**
      * {@link Scheduler} intended for computational work.
      * <p>
@@ -128,7 +139,7 @@ public class Schedulers {
     public static Scheduler threadPoolForIO() {
         return executor(IO_EXECUTOR);
     }
-    
+
     /**
      * {@link Scheduler} intended for IO-bound work.
      * <p>

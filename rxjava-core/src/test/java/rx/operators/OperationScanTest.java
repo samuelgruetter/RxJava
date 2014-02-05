@@ -1,12 +1,12 @@
 /**
- * Copyright 2013 Netflix, Inc.
- *
+ * Copyright 2014 Netflix, Inc.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,7 +64,7 @@ public class OperationScanTest {
     @Test
     public void testScanIntegersWithoutInitialValue() {
         @SuppressWarnings("unchecked")
-        Observer<Integer> Observer = mock(Observer.class);
+        Observer<Integer> observer = mock(Observer.class);
 
         Observable<Integer> observable = Observable.from(1, 2, 3);
 
@@ -76,22 +76,22 @@ public class OperationScanTest {
             }
 
         }));
-        m.subscribe(Observer);
+        m.subscribe(observer);
 
-        verify(Observer, never()).onError(any(Throwable.class));
-        verify(Observer, never()).onNext(0);
-        verify(Observer, times(1)).onNext(1);
-        verify(Observer, times(1)).onNext(3);
-        verify(Observer, times(1)).onNext(6);
-        verify(Observer, times(3)).onNext(anyInt());
-        verify(Observer, times(1)).onCompleted();
-        verify(Observer, never()).onError(any(Throwable.class));
+        verify(observer, never()).onError(any(Throwable.class));
+        verify(observer, never()).onNext(0);
+        verify(observer, times(1)).onNext(1);
+        verify(observer, times(1)).onNext(3);
+        verify(observer, times(1)).onNext(6);
+        verify(observer, times(3)).onNext(anyInt());
+        verify(observer, times(1)).onCompleted();
+        verify(observer, never()).onError(any(Throwable.class));
     }
 
     @Test
     public void testScanIntegersWithoutInitialValueAndOnlyOneValue() {
         @SuppressWarnings("unchecked")
-        Observer<Integer> Observer = mock(Observer.class);
+        Observer<Integer> observer = mock(Observer.class);
 
         Observable<Integer> observable = Observable.from(1);
 
@@ -103,13 +103,13 @@ public class OperationScanTest {
             }
 
         }));
-        m.subscribe(Observer);
+        m.subscribe(observer);
 
-        verify(Observer, never()).onError(any(Throwable.class));
-        verify(Observer, never()).onNext(0);
-        verify(Observer, times(1)).onNext(1);
-        verify(Observer, times(1)).onNext(anyInt());
-        verify(Observer, times(1)).onCompleted();
-        verify(Observer, never()).onError(any(Throwable.class));
+        verify(observer, never()).onError(any(Throwable.class));
+        verify(observer, never()).onNext(0);
+        verify(observer, times(1)).onNext(1);
+        verify(observer, times(1)).onNext(anyInt());
+        verify(observer, times(1)).onCompleted();
+        verify(observer, never()).onError(any(Throwable.class));
     }
 }
