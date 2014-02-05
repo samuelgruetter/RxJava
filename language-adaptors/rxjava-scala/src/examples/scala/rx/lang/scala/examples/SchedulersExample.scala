@@ -58,5 +58,29 @@ class SchedulersExample extends JUnitSuite {
     }
   }
   
+  @Test def methodGroups() {
+    trait SchedulerForMethodsGroup1 extends DefaultIntervalScheduler with DefaultWindowScheduler
+    trait SchedulerForMethodsGroup2 extends DefaultBufferScheduler with DefaultFromScheduler
+    trait SchedulerForBothGroups extends SchedulerForMethodsGroup1 with SchedulerForMethodsGroup2
+        
+    def usage1(): Unit = {
+      implicit val group1Scheduler = new Scheduler(ThreadPoolForComputationScheduler()) with SchedulerForMethodsGroup1
+      implicit val group2Scheduler = new Scheduler(NewThreadScheduler()) with SchedulerForMethodsGroup2
+      
+      Observable.interval(200 millis).take(10).buffer(300 millis)
+      Observable.interval(200 millis).take(10).window(300 millis).flatMap(obs => obs.sum)
+      Observable.from(List(1, 2, 3))
+    }
+    
+    def usage2(): Unit = {
+      implicit val theScheduler = new Scheduler(ThreadPoolForComputationScheduler()) with SchedulerForBothGroups
+      Observable.interval(200 millis).take(10).buffer(300 millis)
+      Observable.interval(200 millis).take(10).window(300 millis).flatMap(obs => obs.sum)
+      Observable.from(List(1, 2, 3))
+    }
+
+
+  }
+  
   
 }
